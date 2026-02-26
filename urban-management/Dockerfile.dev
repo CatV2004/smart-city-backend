@@ -1,0 +1,28 @@
+FROM maven:3.9.9-eclipse-temurin-17
+
+# Set working directory
+WORKDIR /workspace
+
+# Install useful dev tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    bash \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Maven cache location (important for speed)
+ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
+
+# Spring devtools hot reload
+ENV SPRING_DEVTOOLS_RESTART_ENABLED=true
+
+# JVM tuning for container dev
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+# Expose app + debug port
+EXPOSE 8080
+EXPOSE 5005
+
+# Default command (can be overridden by docker-compose)
+CMD ["mvn", "spring-boot:run"]

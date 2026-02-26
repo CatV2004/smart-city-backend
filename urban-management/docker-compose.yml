@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  city-report-api:
+    container_name: city-report-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smartcity/urban-report-api:${IMAGE_TAG}
+    ports:
+      - "${SERVER_PORT}:8080"
+    env_file:
+      - .env
+    depends_on:
+      - city-report-db
+    networks:
+      - city-network
+
+  city-report-db:
+    container_name: city-report-db
+    image: postgis/postgis:17-3.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - city-report-db-data:/var/lib/postgresql/data
+    networks:
+      - city-network
+
+networks:
+  city-network:
+    driver: bridge
+
+volumes:
+  city-report-db-data:
