@@ -21,12 +21,6 @@ spring:
   flyway:
     enabled: true
 
-  springdoc:
-    api-docs:
-      enabled: true
-    swagger-ui:
-      enabled: true
-
   mail:
     host: localhost
     port: 1025
@@ -34,9 +28,23 @@ spring:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false
 
+cloudinary:
+  cloud-name: dohsfqs6d
+  api-key: 123894699435121
+  api-secret: iUwG2F8x45rHmXBMDSLBcXwoyQg
+
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger
+    operationsSorter: method
+    tagsSorter: alpha
+  show-actuator: false

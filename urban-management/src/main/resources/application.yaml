@@ -37,6 +37,8 @@ server:
 #  port: ${SERVER_PORT:8080}
   port: 8080
   shutdown: graceful
+#  servlet:
+#    context-path: /api/v1
 
 management:
   endpoints:

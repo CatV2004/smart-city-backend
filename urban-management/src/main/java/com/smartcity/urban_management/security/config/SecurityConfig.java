@@ -25,21 +25,53 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                // ===== Stateless API =====
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm ->
-                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // ===== Exception handling =====
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/actuator/health"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+
+                // ===== Authorization =====
+                .authorizeHttpRequests(auth -> auth
+
+                        // ---------- PUBLIC ----------
+                        .requestMatchers(
+                                // auth
+                                "/api/auth/**",
+
+                                // actuator
+                                "/actuator/health",
+
+                                // swagger
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+
+                                // static resources
+                                "/favicon.ico",
+                                "/error"
+                        ).permitAll()
+
+                        // ---------- VERSIONED API ----------
+//                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/**").permitAll()
+
+                        .anyRequest().denyAll()
+                )
+
+                // ===== JWT FILTER =====
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }

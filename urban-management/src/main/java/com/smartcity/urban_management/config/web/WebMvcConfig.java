@@ -2,6 +2,7 @@ package com.smartcity.urban_management.config.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -19,4 +20,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedMethods("*")
                 .allowedHeaders("*");
     }
+//
+//    @Override
+//    public void configurePathMatch(PathMatchConfigurer configurer) {
+//
+//        configurer.addPathPrefix(
+//                "/api/v1",
+//                clazz -> clazz.isAnnotationPresent(
+//                        org.springframework.web.bind.annotation.RestController.class
+//                )
+//        );
+//    }
 }

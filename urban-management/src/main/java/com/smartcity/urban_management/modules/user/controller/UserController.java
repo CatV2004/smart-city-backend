@@ -7,7 +7,7 @@ import com.smartcity.urban_management.modules.user.dto.*;
 import com.smartcity.urban_management.modules.user.service.UserService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
