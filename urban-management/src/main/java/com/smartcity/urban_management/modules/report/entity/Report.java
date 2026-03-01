@@ -1,7 +1,12 @@
 package com.smartcity.urban_management.modules.report.entity;
 
+import com.smartcity.urban_management.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
@@ -28,25 +33,28 @@ public class Report {
 
     private String category;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private ReportStatus status;
 
     /**
      * PostGIS geography(Point, 4326)
      */
-    @Column(columnDefinition = "geography(Point,4326)", nullable = false)
+    @Column(name = "location", nullable = false, columnDefinition = "geometry(Point,4326)")
     private Point location;
 
     @Column(columnDefinition = "TEXT")
     private String address;
 
-    @Column(name = "created_by")
-    private UUID createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 
-    @Column(name = "approved_by")
-    private UUID approvedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

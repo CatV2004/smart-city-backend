@@ -1,14 +1,14 @@
 package com.smartcity.urban_management.modules.report.mapper;
 
-import com.smartcity.urban_management.modules.report.dto.AttachmentResponse;
+import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.Attachment;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AttachmentMapper {
 
-    public AttachmentResponse toResponse(Attachment attachment) {
-        return AttachmentResponse.builder()
+    public AttachmentSummaryResponse toResponse(Attachment attachment) {
+        return AttachmentSummaryResponse.builder()
                 .id(attachment.getId())
                 .reportId(attachment.getReport().getId())
                 .fileName(attachment.getFileName())

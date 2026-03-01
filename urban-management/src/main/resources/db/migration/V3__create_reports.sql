@@ -7,7 +7,7 @@ CREATE TABLE reports (
     category VARCHAR(100),
     status VARCHAR(50) DEFAULT 'PENDING',
 
-    location GEOGRAPHY(Point, 4326) NOT NULL,
+    location GEOMETRY(Point, 4326) NOT NULL,
     address TEXT,
 
     created_by UUID REFERENCES users(id),

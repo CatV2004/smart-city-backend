@@ -1,0 +1,17 @@
+Hạ tầng đô thị
+   ├── Pothole
+   ├── Road crack
+   ├── Broken sign
+   ├── Damaged concrete
+   └── Electric wires
+
+Môi trường
+   ├── Garbage
+   ├── Dead animal
+   ├── Fallen trees
+
+Trật tự đô thị
+   ├── Illegal parking
+
+Tiếng ồn
+   ├── (chỉ text)

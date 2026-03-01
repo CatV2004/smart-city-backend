@@ -1,9 +1,13 @@
 package com.smartcity.urban_management.shared.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @RestControllerAdvice
@@ -17,7 +21,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(code.getStatus())
                 .body(new ErrorResponse(
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
                         code.getCode(),
                         code.getMessage()
                 ));
@@ -33,7 +37,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(code.getStatus())
                 .body(new ErrorResponse(
-                        java.time.LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        code.getCode(),
+                        code.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(org.springframework.security.authorization.AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AuthorizationDeniedException ex) {
+
+        ErrorCode code = ErrorCode.FORBIDDEN;
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
                         code.getCode(),
                         code.getMessage()
                 ));

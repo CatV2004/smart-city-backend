@@ -3,6 +3,8 @@ package com.smartcity.urban_management.infrastructure.storage.cloudinary;
 import com.cloudinary.Cloudinary;
 import com.smartcity.urban_management.infrastructure.storage.FileStorageService;
 import com.smartcity.urban_management.infrastructure.storage.FileUploadResult;
+import com.smartcity.urban_management.shared.exception.AppException;
+import com.smartcity.urban_management.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,7 +39,7 @@ public class CloudinaryService implements FileStorageService {
                     .build();
 
         } catch (Exception e) {
-            throw new RuntimeException("Upload file failed", e);
+            throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
@@ -46,7 +48,7 @@ public class CloudinaryService implements FileStorageService {
         try {
             cloudinary.uploader().destroy(publicId, Map.of());
         } catch (Exception e) {
-            throw new RuntimeException("Delete file failed", e);
+            throw new AppException(ErrorCode.FILE_DELETE_FAILED);
         }
     }
 }

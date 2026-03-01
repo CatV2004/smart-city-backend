@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -44,12 +46,13 @@ public class SecurityConfig {
                         // ---------- PUBLIC ----------
                         .requestMatchers(
                                 // auth
-                                "/api/auth/**",
+                                "/api/v1/auth/**",
 
                                 // actuator
                                 "/actuator/health",
 
                                 // swagger
+                                "/swagger",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
@@ -60,19 +63,25 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        // ---------- VERSIONED API ----------
-//                        .requestMatchers("/api/**").authenticated()
-                        .requestMatchers("/api/**").permitAll()
+                        /// ---------- ADMIN ONLY ----------
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
+                        // ---------- AUTHENTICATED USER ----------
+                        .requestMatchers("/api/**")
+                        .authenticated()
 
                         .anyRequest().denyAll()
                 )
 
                 // ===== JWT FILTER =====
-                .addFilterBefore(
-                        jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

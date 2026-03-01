@@ -3,8 +3,8 @@ package com.smartcity.urban_management.modules.report.service.impl;
 import com.smartcity.urban_management.infrastructure.storage.FileStorageService;
 import com.smartcity.urban_management.infrastructure.storage.FileUploadResult;
 import com.smartcity.urban_management.infrastructure.storage.StorageFolders;
-import com.smartcity.urban_management.modules.report.dto.AttachmentResponse;
-import com.smartcity.urban_management.modules.report.dto.CreateAttachmentRequest;
+import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.AttachmentCreateRequest;
 import com.smartcity.urban_management.modules.report.entity.Attachment;
 import com.smartcity.urban_management.modules.report.entity.Report;
 import com.smartcity.urban_management.modules.report.mapper.AttachmentMapper;
@@ -29,7 +29,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final FileStorageService storageService;
 
     @Override
-    public AttachmentResponse create(CreateAttachmentRequest request) {
+    public AttachmentSummaryResponse create(AttachmentCreateRequest request) {
 
         Report report = reportRepository.findById(request.getReportId())
                 .orElseThrow(() -> new RuntimeException("Report not found"));
@@ -51,7 +51,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     @Override
-    public List<AttachmentResponse> getByReport(UUID reportId) {
+    public List<AttachmentSummaryResponse> findByReport(UUID reportId) {
         return attachmentRepository.findByReportId(reportId)
                 .stream()
                 .map(mapper::toResponse)
@@ -59,7 +59,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     @Override
-    public AttachmentResponse upload(UUID reportId, MultipartFile file) {
+    public AttachmentSummaryResponse upload(UUID reportId, MultipartFile file) {
 
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));

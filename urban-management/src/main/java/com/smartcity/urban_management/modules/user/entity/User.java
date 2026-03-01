@@ -25,23 +25,28 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @Column(name = "phone_verified")
     private Boolean phoneVerified = false;
 
+    @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 }

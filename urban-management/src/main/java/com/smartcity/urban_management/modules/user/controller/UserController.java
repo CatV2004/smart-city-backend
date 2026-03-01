@@ -13,8 +13,4 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/register")
-    public UserResponse register(@RequestBody CreateUserRequest request) {
-        return userService.createCitizen(request);
-    }
 }

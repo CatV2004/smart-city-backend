@@ -1,7 +1,7 @@
 package com.smartcity.urban_management.modules.report.controller;
 
-import com.smartcity.urban_management.modules.report.dto.AttachmentResponse;
-import com.smartcity.urban_management.modules.report.dto.CreateAttachmentRequest;
+import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.AttachmentCreateRequest;
 import com.smartcity.urban_management.modules.report.service.AttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,19 +21,19 @@ public class AttachmentController {
     private final AttachmentService attachmentService;
 
     @PostMapping
-    public AttachmentResponse create(@RequestBody CreateAttachmentRequest request) {
+    public AttachmentSummaryResponse create(@RequestBody AttachmentCreateRequest request) {
         return attachmentService.create(request);
     }
 
     @GetMapping("/report/{reportId}")
-    public List<AttachmentResponse> getByReport(@PathVariable UUID reportId) {
-        return attachmentService.getByReport(reportId);
+    public List<AttachmentSummaryResponse> findByReport(@PathVariable UUID reportId) {
+        return attachmentService.findByReport(reportId);
     }
 
     @Operation(summary = "Upload attachment")
     @PostMapping(value = "/upload/{reportId}",
             consumes = "multipart/form-data")
-    public AttachmentResponse upload(
+    public AttachmentSummaryResponse upload(
             @PathVariable UUID reportId,
             @RequestParam("file") MultipartFile file
     ) {

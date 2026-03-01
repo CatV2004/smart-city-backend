@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-02-28 14:37:10",
+  "model_path": "bestmodel.keras",
+  "test_samples": 4160,
+  "overall": {
+    "loss": 0.23762138187885284,
+    "accuracy": 0.9319711327552795,
+    "precision": 0.9371816515922546,
+    "recall": 0.9288461804389954,
+    "micro_auc": 0.9967024438621024,
+    "macro_auc": 0.9953869098040227
+  },
+  "per_class": {
+    "Damaged concrete structures": {
+      "precision": 0.9909390444810544,
+      "recall": 0.9844517184942717,
+      "f1_score": 0.9876847290640394,
+      "support": 1222,
+      "accuracy": 0.9844517184942717
+    },
+    "DamagedElectricalPoles": {
+      "precision": 0.86,
+      "recall": 0.9176829268292683,
+      "f1_score": 0.887905604719764,
+      "support": 328,
+      "accuracy": 0.9176829268292683
+    },
+    "DamagedRoadSigns": {
+      "precision": 1.0,
+      "recall": 0.8974358974358975,
+      "f1_score": 0.9459459459459459,
+      "support": 39,
+      "accuracy": 0.8974358974358975
+    },
+    "DeadAnimalsPollution": {
+      "precision": 0.9333333333333333,
+      "recall": 0.875,
+      "f1_score": 0.9032258064516129,
+      "support": 16,
+      "accuracy": 0.875
+    },
+    "FallenTrees": {
+      "precision": 0.9967170059093894,
+      "recall": 0.9301470588235294,
+      "f1_score": 0.9622820919175912,
+      "support": 1632,
+      "accuracy": 0.9301470588235294
+    },
+    "Garbage": {
+      "precision": 0.7208791208791209,
+      "recall": 0.973293768545994,
+      "f1_score": 0.8282828282828283,
+      "support": 337,
+      "accuracy": 0.973293768545994
+    },
+    "Graffitti": {
+      "precision": 0.8620689655172413,
+      "recall": 0.9523809523809523,
+      "f1_score": 0.9049773755656109,
+      "support": 210,
+      "accuracy": 0.9523809523809523
+    },
+    "IllegalParking": {
+      "precision": 1.0,
+      "recall": 0.8571428571428571,
+      "f1_score": 0.9230769230769231,
+      "support": 7,
+      "accuracy": 0.8571428571428571
+    },
+    "Potholes and RoadCracks": {
+      "precision": 0.8242424242424242,
+      "recall": 0.7371273712737128,
+      "f1_score": 0.7782546494992847,
+      "support": 369,
+      "accuracy": 0.7371273712737128
+    }
+  }
+}
