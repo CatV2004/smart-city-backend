@@ -5,6 +5,7 @@ import com.smartcity.urban_management.modules.notification.dto.NotificationRespo
 import com.smartcity.urban_management.modules.notification.entity.Notification;
 import com.smartcity.urban_management.modules.notification.entity.NotificationType;
 import com.smartcity.urban_management.modules.notification.pagination.NotificationSortField;
+import com.smartcity.urban_management.modules.notification.realtime.NotificationRealtimePublisher;
 import com.smartcity.urban_management.modules.notification.repository.NotificationRepository;
 import com.smartcity.urban_management.modules.notification.service.NotificationService;
 import com.smartcity.urban_management.shared.pagination.PageMapper;
@@ -30,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository repository;
     private final NotificationSortField notificationSortField = new NotificationSortField();
     private final NotificationContentBuilder contentBuilder;
+    private final NotificationRealtimePublisher realtimePublisher;
 
     @Override
     public PageResponse<NotificationResponse> getMyNotifications(
@@ -100,6 +102,8 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         repository.save(notification);
+
+        realtimePublisher.pushToUser(userId, notification);
 
         log.info("Notification saved id={}", notification.getId());
     }
