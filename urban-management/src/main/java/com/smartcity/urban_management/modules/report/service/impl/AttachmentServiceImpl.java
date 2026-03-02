@@ -11,11 +11,17 @@ import com.smartcity.urban_management.modules.report.mapper.AttachmentMapper;
 import com.smartcity.urban_management.modules.report.repository.AttachmentRepository;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.AttachmentService;
+import com.smartcity.urban_management.shared.event.ReportAttachmentsAddedEvent;
+import com.smartcity.urban_management.shared.exception.AppException;
+import com.smartcity.urban_management.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +33,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final ReportRepository reportRepository;
     private final AttachmentMapper mapper;
     private final FileStorageService storageService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public AttachmentSummaryResponse create(AttachmentCreateRequest request) {
@@ -59,29 +66,56 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     @Override
-    public AttachmentSummaryResponse upload(UUID reportId, MultipartFile file) {
+    @Transactional
+    public List<AttachmentSummaryResponse> upload(
+            UUID reportId,
+            List<MultipartFile> files
+    ) {
 
         Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new RuntimeException("Report not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
 
         String folder = StorageFolders.reportFolder(reportId.toString());
 
-        FileUploadResult uploadResult =
-                storageService.upload(file, folder);
+        List<Attachment> attachments = new ArrayList<>();
 
-        Attachment attachment = Attachment.builder()
-                .report(report)
-                .fileName(file.getOriginalFilename())
-                .fileUrl(uploadResult.getFileUrl())
-                .publicId(uploadResult.getPublicId())
-                .storageProvider(uploadResult.getProvider())
-                .fileType(uploadResult.getFileType())
-                .fileSize(uploadResult.getFileSize())
-                .createdAt(LocalDateTime.now())
-                .build();
+        for (MultipartFile file : files) {
 
-        return mapper.toResponse(
-                attachmentRepository.save(attachment)
+            if (file.isEmpty()) continue;
+
+            FileUploadResult uploadResult =
+                    storageService.upload(file, folder);
+
+            Attachment attachment = Attachment.builder()
+                    .report(report)
+                    .fileName(file.getOriginalFilename())
+                    .fileUrl(uploadResult.getFileUrl())
+                    .publicId(uploadResult.getPublicId())
+                    .storageProvider(uploadResult.getProvider())
+                    .fileType(uploadResult.getFileType())
+                    .fileSize(uploadResult.getFileSize())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            attachments.add(attachment);
+        }
+
+        List<Attachment> saved =
+                attachmentRepository.saveAll(attachments);
+
+        List<String> uploadedUrls = saved.stream()
+                .map(Attachment::getFileUrl)
+                .toList();
+
+        applicationEventPublisher.publishEvent(
+                new ReportAttachmentsAddedEvent(
+                        reportId,
+                        uploadedUrls
+                )
         );
+
+        return saved.stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 }

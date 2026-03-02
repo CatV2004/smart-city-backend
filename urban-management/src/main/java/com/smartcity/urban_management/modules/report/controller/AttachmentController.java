@@ -30,13 +30,15 @@ public class AttachmentController {
         return attachmentService.findByReport(reportId);
     }
 
-    @Operation(summary = "Upload attachment")
-    @PostMapping(value = "/upload/{reportId}",
-            consumes = "multipart/form-data")
-    public AttachmentSummaryResponse upload(
+    @Operation(summary = "Upload attachments")
+    @PostMapping(
+            value = "/upload/{reportId}",
+            consumes = "multipart/form-data"
+    )
+    public List<AttachmentSummaryResponse> upload(
             @PathVariable UUID reportId,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("files") List<MultipartFile> files
     ) {
-        return attachmentService.upload(reportId, file);
+        return attachmentService.upload(reportId, files);
     }
 }

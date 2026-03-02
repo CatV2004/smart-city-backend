@@ -13,6 +13,7 @@ import com.smartcity.urban_management.modules.report.repository.AttachmentReposi
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.modules.user.entity.User;
+import com.smartcity.urban_management.shared.event.ReportCreatedEvent;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
 import com.smartcity.urban_management.shared.pagination.PageMapper;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class ReportServiceImpl implements ReportService {
     private final EntityManager entityManager;
     private final ReportCacheService reportCacheService;
     private final ReportSortField reportSortField = new ReportSortField();
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -71,6 +74,20 @@ public class ReportServiceImpl implements ReportService {
                 .build();
 
         report = repository.save(report);
+
+        applicationEventPublisher.publishEvent(
+                new ReportCreatedEvent(
+                        report.getId(),
+                        userId,
+                        report.getTitle(),
+                        report.getDescription(),
+                        report.getCategory(),
+                        report.getLocation().getY(),
+                        report.getLocation().getX(),
+                        report.getAddress(),
+                        report.getCreatedAt()
+                )
+        );
 
         reportCacheService.evictAllReportPages();
 

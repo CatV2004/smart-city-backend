@@ -13,6 +13,6 @@ public interface AttachmentService {
 
     List<AttachmentSummaryResponse> findByReport(UUID reportId);
 
-    AttachmentSummaryResponse upload(UUID reportId, MultipartFile file);
+    List<AttachmentSummaryResponse> upload(UUID reportId, List<MultipartFile> files);
 
 }
