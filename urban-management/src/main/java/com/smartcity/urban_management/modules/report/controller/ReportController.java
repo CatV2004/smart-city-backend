@@ -6,6 +6,8 @@ import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.security.user.CustomUserDetails;
+import com.smartcity.urban_management.shared.pagination.PageRequestDto;
+import com.smartcity.urban_management.shared.pagination.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
@@ -36,8 +38,10 @@ public class ReportController {
     }
 
     @GetMapping
-    public List<ReportSummaryResponse> getAll() {
-        return reportService.findAll();
+    public PageResponse<ReportSummaryResponse> getAll(
+            @ModelAttribute PageRequestDto request
+    ) {
+        return reportService.findAll(request);
     }
 
     @Operation(summary = "Get report details by ID")

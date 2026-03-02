@@ -4,6 +4,8 @@ import com.smartcity.urban_management.modules.report.dto.ReportCreateRequest;
 import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
+import com.smartcity.urban_management.shared.pagination.PageRequestDto;
+import com.smartcity.urban_management.shared.pagination.PageResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,7 +14,7 @@ public interface ReportService {
 
     ReportSummaryResponse create(ReportCreateRequest request, UUID userId);
 
-    List<ReportSummaryResponse> findAll();
+    PageResponse<ReportSummaryResponse> findAll(PageRequestDto request);
 
     ReportDetailResponse findById(String reportId);
 

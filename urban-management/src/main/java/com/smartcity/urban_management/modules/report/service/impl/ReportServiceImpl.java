@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.report.service.impl;
 
+import com.smartcity.urban_management.infrastructure.redis.cache.ReportCacheService;
 import com.smartcity.urban_management.modules.report.dto.ReportCreateRequest;
 import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
@@ -7,30 +8,42 @@ import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusReque
 import com.smartcity.urban_management.modules.report.entity.Report;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.report.mapper.ReportMapper;
+import com.smartcity.urban_management.modules.report.pagination.ReportSortField;
 import com.smartcity.urban_management.modules.report.repository.AttachmentRepository;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.modules.user.entity.User;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
+import com.smartcity.urban_management.shared.pagination.PageMapper;
+import com.smartcity.urban_management.shared.pagination.PageRequestDto;
+import com.smartcity.urban_management.shared.pagination.PageResponse;
+import com.smartcity.urban_management.shared.pagination.PageableFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
     private final ReportRepository repository;
     private final AttachmentRepository attachmentRepository;
     private final EntityManager entityManager;
+    private final ReportCacheService reportCacheService;
+    private final ReportSortField reportSortField = new ReportSortField();
 
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -59,14 +72,41 @@ public class ReportServiceImpl implements ReportService {
 
         report = repository.save(report);
 
+        reportCacheService.evictAllReportPages();
+
         return repository.findSummaryById(report.getId())
                 .orElseThrow(() ->
                         new RuntimeException("Report not found after creation"));
     }
 
     @Override
-    public List<ReportSummaryResponse> findAll() {
-        return repository.findAllResponses();
+    public PageResponse<ReportSummaryResponse> findAll(PageRequestDto request) {
+
+        int page = request.getPage();
+        int size = request.getSize();
+        String sort = request.getSort();
+
+        // ===== CACHE CHECK =====
+        Optional<PageResponse<ReportSummaryResponse>> cached =
+                reportCacheService.getReportPage(page, size, sort);
+
+        if (cached.isPresent()) {
+            return cached.get();
+        }
+
+        // ===== DB QUERY =====
+        Pageable pageable = PageableFactory.from(request, reportSortField);
+
+        Page<ReportSummaryResponse> result =
+                repository.findAllResponses(pageable);
+
+        PageResponse<ReportSummaryResponse> response =
+                PageMapper.toResponse(result);
+
+        // ===== SAVE CACHE =====
+        reportCacheService.cacheReportPage(page, size, sort, response);
+
+        return response;
     }
 
     @Override
@@ -75,14 +115,26 @@ public class ReportServiceImpl implements ReportService {
 
         UUID id = UUID.fromString(reportId);
 
+        // 1. Check cache trước
+        Optional<ReportDetailResponse> cached =
+                reportCacheService.getReport(id);
+
+        if (cached.isPresent()) {
+            return cached.get();
+        }
+
+        // 2.1. query DB nếu cache miss
         ReportDetailResponse response =
                 repository.findDetailById(id)
                         .orElseThrow(() ->
                                 new AppException(ErrorCode.REPORT_NOT_FOUND));
 
-        attachmentRepository.findFirstByReportId(id)
+        attachmentRepository.findAllByReportId(id)
                 .ifPresent(response::setAttachment);
-        System.out.println(response.getAttachment());
+
+        //2.2. cache kết quả
+        reportCacheService.cacheReport(id, response);
+
         return response;
     }
 
@@ -104,6 +156,9 @@ public class ReportServiceImpl implements ReportService {
         report.setStatus(request.getStatus());
         report.setApprovedBy(adminRef);
 
+        reportCacheService.evictReport(reportId);
+        reportCacheService.evictAllReportPages();
+
         return repository.findDetailById(reportId)
                 .orElseThrow();
     }
@@ -123,6 +178,8 @@ public class ReportServiceImpl implements ReportService {
         // ===== soft delete =====
         report.setDeletedAt(LocalDateTime.now());
         report.setUpdatedAt(LocalDateTime.now());
+        reportCacheService.evictReport(reportId);
+        reportCacheService.evictAllReportPages();
 
         attachmentRepository.softDeleteByReportId(reportId);
     }
@@ -141,6 +198,8 @@ public class ReportServiceImpl implements ReportService {
         }
 
         attachmentRepository.deleteByReportId(id);
+        reportCacheService.evictReport(id);
+        reportCacheService.evictAllReportPages();
 
         repository.delete(report);
     }

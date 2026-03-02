@@ -26,8 +26,8 @@ spring:
 logging:
   level:
     root: INFO
-    com.smartcity: DEBUG
     org.springframework.security: DEBUG
+    com.smartcity.urban_management.infrastructure.redis: DEBUG
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}

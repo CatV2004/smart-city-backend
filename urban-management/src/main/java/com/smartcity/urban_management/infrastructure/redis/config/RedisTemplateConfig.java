@@ -16,21 +16,26 @@ public class RedisTemplateConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(
-            RedisConnectionFactory connectionFactory) {
+            RedisConnectionFactory factory,
+            ObjectMapper objectMapper
+    ) {
 
         RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
 
-        template.setConnectionFactory(connectionFactory);
+        ObjectMapper mapper = objectMapper.copy();
+        mapper.activateDefaultTyping(
+                mapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL
+        );
 
-        var serializer =
-                new GenericJackson2JsonRedisSerializer(objectMapper);
+        Jackson2JsonRedisSerializer<Object> serializer =
+                new Jackson2JsonRedisSerializer<>(mapper, Object.class);
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
 
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(serializer);
-
+        template.afterPropertiesSet();
         return template;
     }
 }

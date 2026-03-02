@@ -31,7 +31,7 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
                 WHERE a.report.id = :reportId AND a.deletedAt IS NULL
                 ORDER BY a.createdAt ASC
             """)
-    Optional<AttachmentSummaryResponse> findFirstByReportId(UUID reportId);
+    Optional<AttachmentSummaryResponse> findAllByReportId(UUID reportId);
 
     void deleteByReportId(UUID reportId);
 

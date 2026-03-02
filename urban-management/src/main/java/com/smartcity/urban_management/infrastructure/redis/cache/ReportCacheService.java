@@ -1,42 +1,138 @@
 package com.smartcity.urban_management.infrastructure.redis.cache;
 
 import com.smartcity.urban_management.infrastructure.redis.key.CacheKeys;
+import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
+import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
+import com.smartcity.urban_management.shared.pagination.PageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReportCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final Duration TTL = Duration.ofMinutes(10);
+    private static final Duration DETAIL_TTL = Duration.ofMinutes(15);
+    private static final Duration LIST_TTL = Duration.ofMinutes(3);
 
-    public Optional<Object> getReport(UUID id) {
+    /* ================= DETAIL ================= */
 
-        Object data =
-                redisTemplate.opsForValue()
-                        .get(CacheKeys.reportById(id));
+    public Optional<ReportDetailResponse> getReport(UUID id) {
 
-        return Optional.ofNullable(data);
+        String key = CacheKeys.reportById(id);
+
+        Object data = redisTemplate.opsForValue().get(key);
+
+        if (data != null) {
+            log.debug("✅ Redis HIT - report detail [{}]", key);
+            return Optional.of((ReportDetailResponse) data);
+        }
+
+        log.debug("❌ Redis MISS - report detail [{}]", key);
+        return Optional.empty();
     }
 
-    public void cacheReport(UUID id, Object report) {
+    public void cacheReport(UUID id, ReportDetailResponse report) {
+
+        String key = CacheKeys.reportById(id);
 
         redisTemplate.opsForValue()
-                .set(
-                        CacheKeys.reportById(id),
-                        report,
-                        TTL
-                );
+                .set(key, report, DETAIL_TTL);
+
+        log.debug(
+                "🧠 Redis CACHE SET - report detail [{}], ttl={}m",
+                key,
+                DETAIL_TTL.toMinutes()
+        );
     }
 
-    public void evict(UUID id) {
-        redisTemplate.delete(CacheKeys.reportById(id));
+    /* ================= LIST ================= */
+
+    public Optional<PageResponse<ReportSummaryResponse>> getReportPage(
+            int page,
+            int size,
+            String sort
+    ) {
+
+        String key = CacheKeys.reportList(page, size, sort);
+
+        Object data = redisTemplate.opsForValue().get(key);
+
+        if (data != null) {
+            log.debug("✅ Redis HIT - report page [{}]", key);
+            return Optional.of((PageResponse<ReportSummaryResponse>) data);
+        }
+
+        log.debug("❌ Redis MISS - report page [{}]", key);
+        return Optional.empty();
+    }
+
+    public void cacheReportPage(
+            int page,
+            int size,
+            String sort,
+            PageResponse<ReportSummaryResponse> response
+    ) {
+
+        String key = CacheKeys.reportList(page, size, sort);
+
+        redisTemplate.opsForValue()
+                .set(key, response, LIST_TTL);
+
+        log.debug(
+                "🧠 Redis CACHE SET - report page [{}], elements={}, ttl={}m",
+                key,
+                response.getContent().size(),
+                LIST_TTL.toMinutes()
+        );
+    }
+
+    /* ================= EVICT ================= */
+
+    public void evictReport(UUID id) {
+
+        String key = CacheKeys.reportById(id);
+
+        redisTemplate.delete(key);
+
+        log.debug("🗑 Redis EVICT - report detail [{}]", key);
+    }
+
+    public void evictAllReportPages() {
+
+        String pattern = CacheKeys.reportListPattern();
+
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(pattern)
+                .count(100)
+                .build();
+
+        Cursor<byte[]> cursor =
+                redisTemplate.getConnectionFactory()
+                        .getConnection()
+                        .scan(options);
+
+        List<String> keys = new ArrayList<>();
+
+        cursor.forEachRemaining(key ->
+                keys.add(new String(key))
+        );
+
+        if (!keys.isEmpty()) {
+            redisTemplate.delete(keys);
+            log.debug("🗑 Redis EVICT ALL report pages [{} keys]", keys.size());
+        }
     }
 }
