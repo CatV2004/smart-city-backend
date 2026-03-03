@@ -23,13 +23,13 @@ public class JwtTokenProvider {
         );
     }
 
-    public String generateToken(UUID userId) {
+    public String generateToken(UUID userId, String role) {
 
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + properties.getExpiration());
-
+        Date expiry = new Date(now.getTime() + properties.getExpiration() * 1000); //1s = 1000ms
         return Jwts.builder()
                 .setSubject(userId.toString())
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -45,6 +45,15 @@ public class JwtTokenProvider {
                         .getBody()
                         .getSubject()
         );
+    }
+
+    public String getRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     public boolean validate(String token) {

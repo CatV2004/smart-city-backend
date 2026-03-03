@@ -2,10 +2,13 @@ package com.smartcity.urban_management.modules.user.controller;
 
 import com.smartcity.urban_management.modules.user.dto.*;
 import com.smartcity.urban_management.modules.user.service.AuthService;
+import com.smartcity.urban_management.modules.user.service.UserService;
+import com.smartcity.urban_management.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
@@ -26,7 +30,10 @@ public class AuthController {
                 .secure(false)        // production = true
                 .path("/")
                 .maxAge(response.getExpiresIn())
-                .sameSite("Strict")  // hoặc "None" nếu khác domain
+//                .sameSite("None") // hoặc "Strict" nếu cùng domain, "None" nếu cross-domain (cần secure=true)
+//                .secure(true)
+                .sameSite("Lax")
+                .secure(false)
                 .build();
 
         return ResponseEntity.ok()
@@ -37,5 +44,12 @@ public class AuthController {
     @PostMapping("/register")
     public void register(@RequestBody RegisterRequest request) {
         authService.register(request);
+    }
+
+    @GetMapping("/me")
+    public UserResponse getCurrentUser(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return userService.getCurrentUser(user.getId());
     }
 }

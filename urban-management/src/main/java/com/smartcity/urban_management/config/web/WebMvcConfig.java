@@ -12,23 +12,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
     // - CORS
     // - Interceptor
     // - Formatter
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3000")
-                .allowedMethods("*")
-                .allowedHeaders("*");
-    }
-//
-//    @Override
-//    public void configurePathMatch(PathMatchConfigurer configurer) {
-//
-//        configurer.addPathPrefix(
-//                "/api/v1",
-//                clazz -> clazz.isAnnotationPresent(
-//                        org.springframework.web.bind.annotation.RestController.class
-//                )
-//        );
-//    }
 }

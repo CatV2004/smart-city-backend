@@ -58,4 +58,4 @@ app:
   jwt:
 #    secret: ${JWT_SECRET:738f475212ddfdb71be0bf1f44177391}
     secret: 738f475212ddfdb71be0bf1f44177391
-    expiration: 7200000
+    expiration: 7200 # (seconds) => 2 hours
