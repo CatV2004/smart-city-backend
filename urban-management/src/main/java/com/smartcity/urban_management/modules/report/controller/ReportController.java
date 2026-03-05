@@ -44,6 +44,15 @@ public class ReportController {
         return reportService.findAll(request);
     }
 
+    @Operation(summary = "Get all reports of the authenticated user")
+    @GetMapping("/my")
+    public PageResponse<ReportSummaryResponse> getMyReports(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @ModelAttribute PageRequestDto request
+    ) {
+        return reportService.findByUserId(user.getId(), request);
+    }
+
     @Operation(summary = "Get report details by ID")
     @GetMapping("/{reportId}")
     public ReportDetailResponse getById(@PathVariable String reportId) {
@@ -63,7 +72,10 @@ public class ReportController {
     @Operation(summary = "Delete report")
     @DeleteMapping("/{id}")
     @PreAuthorize("@reportAuth.canDelete(#id, authentication)")
-    public void delete(@PathVariable UUID id) {
-        reportService.softDeleteReport(id);
+    public void delete(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        reportService.softDeleteReport(id, user.getId());
     }
 }

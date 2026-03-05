@@ -90,6 +90,7 @@ public class ReportServiceImpl implements ReportService {
         );
 
         reportCacheService.evictAllReportPages();
+        reportCacheService.evictUserReportPages(userId);
 
         return repository.findSummaryById(report.getId())
                 .orElseThrow(() ->
@@ -122,6 +123,38 @@ public class ReportServiceImpl implements ReportService {
 
         // ===== SAVE CACHE =====
         reportCacheService.cacheReportPage(page, size, sort, response);
+
+        return response;
+    }
+
+    @Override
+    public PageResponse<ReportSummaryResponse> findByUserId(UUID userId, PageRequestDto request) {
+
+        int page = request.getPage();
+        int size = request.getSize();
+        String sort = request.getSort();
+
+        // ===== CACHE CHECK =====
+        Optional<PageResponse<ReportSummaryResponse>> cached =
+                reportCacheService.getUserReportPage(userId, page, size, sort);
+
+        if (cached.isPresent()) {
+            return cached.get();
+        }
+
+        // ===== CREATE PAGEABLE =====
+        Pageable pageable = PageableFactory.from(request, reportSortField);
+
+        // ===== DB QUERY =====
+        Page<ReportSummaryResponse> result =
+                repository.findByCreatedById(userId, pageable);
+
+        // ===== MAP RESPONSE =====
+        PageResponse<ReportSummaryResponse> response =
+                PageMapper.toResponse(result);
+
+        // ===== SAVE CACHE =====
+        reportCacheService.cacheUserReportPage(userId, page, size, sort, response);
 
         return response;
     }
@@ -182,7 +215,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
-    public void softDeleteReport(UUID reportId) {
+    public void softDeleteReport(UUID reportId, UUID userId) {
 
         Report report = repository
                 .findByIdAndDeletedAtIsNull(reportId)
@@ -195,15 +228,18 @@ public class ReportServiceImpl implements ReportService {
         // ===== soft delete =====
         report.setDeletedAt(LocalDateTime.now());
         report.setUpdatedAt(LocalDateTime.now());
+
+        // ===== CACHE EVICT =====
         reportCacheService.evictReport(reportId);
         reportCacheService.evictAllReportPages();
+        reportCacheService.evictUserReportPages(userId);
 
         attachmentRepository.softDeleteByReportId(reportId);
     }
 
     @Override
     @Transactional
-    public void purgeDeletedReport(UUID id) {
+    public void purgeDeletedReport(UUID id, UUID userId) {
 
         Report report = repository
                 .findById(id)
@@ -217,6 +253,7 @@ public class ReportServiceImpl implements ReportService {
         attachmentRepository.deleteByReportId(id);
         reportCacheService.evictReport(id);
         reportCacheService.evictAllReportPages();
+        reportCacheService.evictUserReportPages(userId);
 
         repository.delete(report);
     }

@@ -99,6 +99,49 @@ public class ReportCacheService {
         );
     }
 
+    /* ================= USER LIST ================= */
+
+    public Optional<PageResponse<ReportSummaryResponse>> getUserReportPage(
+            UUID userId,
+            int page,
+            int size,
+            String sort
+    ) {
+
+        String key = CacheKeys.userReportList(userId, page, size, sort);
+
+        Object data = redisTemplate.opsForValue().get(key);
+
+        if (data != null) {
+            log.debug("✅ Redis HIT - user report page [{}]", key);
+            return Optional.of((PageResponse<ReportSummaryResponse>) data);
+        }
+
+        log.debug("❌ Redis MISS - user report page [{}]", key);
+        return Optional.empty();
+    }
+
+    public void cacheUserReportPage(
+            UUID userId,
+            int page,
+            int size,
+            String sort,
+            PageResponse<ReportSummaryResponse> response
+    ) {
+
+        String key = CacheKeys.userReportList(userId, page, size, sort);
+
+        redisTemplate.opsForValue()
+                .set(key, response, LIST_TTL);
+
+        log.debug(
+                "🧠 Redis CACHE SET - user report page [{}], elements={}, ttl={}m",
+                key,
+                response.getContent().size(),
+                LIST_TTL.toMinutes()
+        );
+    }
+
     /* ================= EVICT ================= */
 
     public void evictReport(UUID id) {
@@ -133,6 +176,32 @@ public class ReportCacheService {
         if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
             log.debug("🗑 Redis EVICT ALL report pages [{} keys]", keys.size());
+        }
+    }
+
+    public void evictUserReportPages(UUID userId) {
+
+        String pattern = CacheKeys.userReportListPattern(userId);
+
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(pattern)
+                .count(100)
+                .build();
+
+        Cursor<byte[]> cursor =
+                redisTemplate.getConnectionFactory()
+                        .getConnection()
+                        .scan(options);
+
+        List<String> keys = new ArrayList<>();
+
+        cursor.forEachRemaining(key ->
+                keys.add(new String(key))
+        );
+
+        if (!keys.isEmpty()) {
+            redisTemplate.delete(keys);
+            log.debug("🗑 Redis EVICT user report pages [{} keys]", keys.size());
         }
     }
 }

@@ -4,7 +4,8 @@ import java.util.UUID;
 
 public final class CacheKeys {
 
-    private CacheKeys() {}
+    private CacheKeys() {
+    }
 
     private static final String PREFIX = "urban:report:";
 
@@ -21,9 +22,20 @@ public final class CacheKeys {
                 .formatted(page, size, sort);
     }
 
+    /* ========= USER LIST ========= */
+
+    public static String userReportList(UUID userId, int page, int size, String sort) {
+        return PREFIX + "list:user:%s:%d:%d:%s"
+                .formatted(userId, page, size, sort);
+    }
+
     /* ========= PATTERN ========= */
 
     public static String reportListPattern() {
         return PREFIX + "list:*";
+    }
+
+    public static String userReportListPattern(UUID userId) {
+        return PREFIX + "list:user:%s:*".formatted(userId);
     }
 }

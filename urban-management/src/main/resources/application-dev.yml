@@ -42,3 +42,6 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
   show-actuator: false
+
+geocode:
+  user-agent: smart-city-api/1.0 (nguyenmanhc261@gmail.com)

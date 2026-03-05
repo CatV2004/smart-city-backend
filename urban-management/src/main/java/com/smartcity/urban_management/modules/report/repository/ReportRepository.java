@@ -78,4 +78,25 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     Optional<Report> findByIdAndDeletedAtIsNull(UUID id);
 
     boolean existsByIdAndCreatedBy_Id(UUID id, UUID userId);
+
+    @Query("""
+        SELECT new com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse(
+            r.id,
+            r.title,
+            r.description,
+            r.category,
+            r.status,
+            cast(function('ST_Y', r.location) as double),
+            cast(function('ST_X', r.location) as double),
+            r.address,
+            u.fullName,
+            u.id,
+            r.createdAt
+        )
+        FROM Report r
+        JOIN r.createdBy u
+        WHERE r.deletedAt IS NULL
+        AND u.id = :userId
+        """)
+    Page<ReportSummaryResponse> findByCreatedById(UUID userId, Pageable pageable);
 }

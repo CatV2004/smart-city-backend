@@ -20,7 +20,9 @@ public interface ReportService {
 
     ReportDetailResponse updateStatus(UUID reportId, UpdateReportStatusRequest request, UUID adminId);
 
-    void softDeleteReport(UUID reportId);
+    void softDeleteReport(UUID reportId, UUID userId);
 
-    void purgeDeletedReport(UUID reportId);
+    void purgeDeletedReport(UUID reportId, UUID userId);
+
+    PageResponse<ReportSummaryResponse> findByUserId(UUID userId, PageRequestDto request);
 }
