@@ -31,6 +31,7 @@ public class ReportDetailResponse {
     private UUID createdByUserId;
 
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public ReportDetailResponse(
             UUID id,
@@ -43,7 +44,9 @@ public class ReportDetailResponse {
             String address,
             String createdByName,
             UUID createdByUserId,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+
     ) {
         this.id = id;
         this.title = title;
@@ -56,5 +59,6 @@ public class ReportDetailResponse {
         this.createdByName = createdByName;
         this.createdByUserId = createdByUserId;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 }

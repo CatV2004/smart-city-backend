@@ -1,10 +1,7 @@
 package com.smartcity.urban_management.modules.report.service.impl;
 
 import com.smartcity.urban_management.infrastructure.redis.cache.ReportCacheService;
-import com.smartcity.urban_management.modules.report.dto.ReportCreateRequest;
-import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
-import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
+import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.modules.report.entity.Report;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.report.mapper.ReportMapper;
@@ -12,6 +9,7 @@ import com.smartcity.urban_management.modules.report.pagination.ReportSortField;
 import com.smartcity.urban_management.modules.report.repository.AttachmentRepository;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
+import com.smartcity.urban_management.modules.report.specification.ReportSpecification;
 import com.smartcity.urban_management.modules.user.entity.User;
 import com.smartcity.urban_management.shared.event.ReportCreatedEvent;
 import com.smartcity.urban_management.shared.exception.AppException;
@@ -27,7 +25,9 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,15 +98,16 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public PageResponse<ReportSummaryResponse> findAll(PageRequestDto request) {
+    public PageResponse<ReportSummaryResponse> findAll(ReportFilterRequest filter, PageRequestDto request) {
 
         int page = request.getPage();
         int size = request.getSize();
         String sort = request.getSort();
+        String filterKey = buildFilterKey(filter);
 
         // ===== CACHE CHECK =====
         Optional<PageResponse<ReportSummaryResponse>> cached =
-                reportCacheService.getReportPage(page, size, sort);
+                reportCacheService.getReportPage(page, size, sort, filterKey);
 
         if (cached.isPresent()) {
             return cached.get();
@@ -115,28 +116,49 @@ public class ReportServiceImpl implements ReportService {
         // ===== DB QUERY =====
         Pageable pageable = PageableFactory.from(request, reportSortField);
 
-        Page<ReportSummaryResponse> result =
-                repository.findAllResponses(pageable);
+        // ===== UNWRAP KEYWORD =====
+        String keywordParam = filter.getKeyword();
+        if (keywordParam != null && keywordParam.isBlank()) {
+            keywordParam = null;
+        }
 
+        // ===== DB QUERY =====
+        Page<ReportSummaryResponse> result =
+                repository.findAllResponses(
+                        filter.getStatus(),
+                        filter.getCategory(),
+                        keywordParam,
+                        pageable
+                );
+
+        // ===== MAP RESPONSE =====
         PageResponse<ReportSummaryResponse> response =
                 PageMapper.toResponse(result);
 
         // ===== SAVE CACHE =====
-        reportCacheService.cacheReportPage(page, size, sort, response);
+        reportCacheService.cacheReportPage(
+                page,
+                size,
+                sort,
+                filterKey,
+                response
+        );
 
         return response;
     }
 
     @Override
-    public PageResponse<ReportSummaryResponse> findByUserId(UUID userId, PageRequestDto request) {
+    public PageResponse<ReportSummaryResponse> findByUserId(UUID userId, ReportFilterRequest filter, PageRequestDto request) {
 
         int page = request.getPage();
         int size = request.getSize();
         String sort = request.getSort();
 
+        String filterKey = buildFilterKey(filter);
+
         // ===== CACHE CHECK =====
         Optional<PageResponse<ReportSummaryResponse>> cached =
-                reportCacheService.getUserReportPage(userId, page, size, sort);
+                reportCacheService.getUserReportPage(userId, page, size, sort, filterKey);
 
         if (cached.isPresent()) {
             return cached.get();
@@ -145,16 +167,35 @@ public class ReportServiceImpl implements ReportService {
         // ===== CREATE PAGEABLE =====
         Pageable pageable = PageableFactory.from(request, reportSortField);
 
+        // ===== UNWRAP KEYWORD =====
+        String keywordParam = filter.getKeyword();
+        if (keywordParam != null && keywordParam.isBlank()) {
+            keywordParam = null;
+        }
+
         // ===== DB QUERY =====
         Page<ReportSummaryResponse> result =
-                repository.findByCreatedById(userId, pageable);
+                repository.findUserReports(
+                        userId,
+                        filter.getStatus(),
+                        filter.getCategory(),
+                        keywordParam,
+                        pageable
+                );
 
         // ===== MAP RESPONSE =====
         PageResponse<ReportSummaryResponse> response =
                 PageMapper.toResponse(result);
 
         // ===== SAVE CACHE =====
-        reportCacheService.cacheUserReportPage(userId, page, size, sort, response);
+        reportCacheService.cacheUserReportPage(
+                userId,
+                page,
+                size,
+                sort,
+                filterKey,
+                response
+        );
 
         return response;
     }
@@ -258,6 +299,14 @@ public class ReportServiceImpl implements ReportService {
         repository.delete(report);
     }
 
+    @Override
+    public List<ReportSummaryResponse> getRecentReports(UUID citizenId, int limit) {
+        return repository.findRecentReports(
+                citizenId,
+                PageRequest.of(0, limit)
+        );
+    }
+
     private void validateStatusTransition(
             ReportStatus current,
             ReportStatus target
@@ -299,5 +348,19 @@ public class ReportServiceImpl implements ReportService {
         if (report.getStatus() == ReportStatus.RESOLVED) {
             throw new AppException(ErrorCode.REPORT_DELETE_NOT_ALLOWED);
         }
+    }
+
+    private String buildFilterKey(ReportFilterRequest filter) {
+
+        if (filter == null) {
+            return "nofilter";
+        }
+
+        return String.format(
+                "status:%s|category:%s|keyword:%s",
+                filter.getStatus(),
+                filter.getCategory(),
+                filter.getKeyword()
+        );
     }
 }

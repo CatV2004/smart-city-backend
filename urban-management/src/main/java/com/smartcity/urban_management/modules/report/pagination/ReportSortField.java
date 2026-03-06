@@ -8,9 +8,7 @@ public class ReportSortField implements SortResolver {
 
     private static final Map<String, String> SORT_FIELDS = Map.of(
             "createdAt", "createdAt",
-            "status", "status",
-            "title", "title",
-            "category", "category"
+            "title", "title"
     );
 
     @Override

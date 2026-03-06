@@ -1,9 +1,7 @@
 package com.smartcity.urban_management.modules.report.controller;
 
-import com.smartcity.urban_management.modules.report.dto.ReportCreateRequest;
-import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
-import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
+import com.smartcity.urban_management.modules.report.dto.*;
+import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.security.user.CustomUserDetails;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
@@ -39,18 +37,36 @@ public class ReportController {
 
     @GetMapping
     public PageResponse<ReportSummaryResponse> getAll(
+            @RequestParam(required = false) ReportStatus status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+
             @ModelAttribute PageRequestDto request
     ) {
-        return reportService.findAll(request);
+        ReportFilterRequest filter = new ReportFilterRequest();
+        filter.setStatus(status);
+        filter.setCategory(category);
+        filter.setKeyword(keyword);
+
+        return reportService.findAll(filter, request);
     }
 
     @Operation(summary = "Get all reports of the authenticated user")
     @GetMapping("/my")
     public PageResponse<ReportSummaryResponse> getMyReports(
+            @RequestParam(required = false) ReportStatus status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+
             @AuthenticationPrincipal CustomUserDetails user,
             @ModelAttribute PageRequestDto request
     ) {
-        return reportService.findByUserId(user.getId(), request);
+        ReportFilterRequest filter = new ReportFilterRequest();
+        filter.setStatus(status);
+        filter.setCategory(category);
+        filter.setKeyword(keyword);
+
+        return reportService.findByUserId(user.getId(), filter, request);
     }
 
     @Operation(summary = "Get report details by ID")

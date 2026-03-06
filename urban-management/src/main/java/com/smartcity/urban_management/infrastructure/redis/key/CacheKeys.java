@@ -17,16 +17,27 @@ public final class CacheKeys {
 
     /* ========= LIST ========= */
 
-    public static String reportList(int page, int size, String sort) {
-        return PREFIX + "list:%d:%d:%s"
-                .formatted(page, size, sort);
+    public static String reportList(
+            int page,
+            int size,
+            String sort,
+            String filterKey
+    ) {
+        return PREFIX + "list:%d:%d:%s:%s"
+                .formatted(page, size, sort, filterKey);
     }
 
-    /* ========= USER LIST ========= */
+    /* ========= REPORTS OF USER LIST ========= */
 
-    public static String userReportList(UUID userId, int page, int size, String sort) {
-        return PREFIX + "list:user:%s:%d:%d:%s"
-                .formatted(userId, page, size, sort);
+    public static String userReportList(
+            UUID userId,
+            int page,
+            int size,
+            String sort,
+            String filterKey
+    ) {
+        return PREFIX + "list:user:%s:%d:%d:%s:%s"
+                .formatted(userId, page, size, sort, filterKey);
     }
 
     /* ========= PATTERN ========= */

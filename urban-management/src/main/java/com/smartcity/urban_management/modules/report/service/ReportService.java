@@ -1,9 +1,6 @@
 package com.smartcity.urban_management.modules.report.service;
 
-import com.smartcity.urban_management.modules.report.dto.ReportCreateRequest;
-import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
-import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
+import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 
@@ -14,7 +11,7 @@ public interface ReportService {
 
     ReportSummaryResponse create(ReportCreateRequest request, UUID userId);
 
-    PageResponse<ReportSummaryResponse> findAll(PageRequestDto request);
+    PageResponse<ReportSummaryResponse> findAll(ReportFilterRequest filter, PageRequestDto request);
 
     ReportDetailResponse findById(String reportId);
 
@@ -24,5 +21,7 @@ public interface ReportService {
 
     void purgeDeletedReport(UUID reportId, UUID userId);
 
-    PageResponse<ReportSummaryResponse> findByUserId(UUID userId, PageRequestDto request);
+    PageResponse<ReportSummaryResponse> findByUserId(UUID userId, ReportFilterRequest filter,  PageRequestDto request);
+
+    List<ReportSummaryResponse> getRecentReports(UUID citizenId, int limit);
 }

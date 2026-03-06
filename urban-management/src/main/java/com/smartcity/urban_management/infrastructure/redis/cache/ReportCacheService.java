@@ -63,10 +63,11 @@ public class ReportCacheService {
     public Optional<PageResponse<ReportSummaryResponse>> getReportPage(
             int page,
             int size,
-            String sort
+            String sort,
+            String filterKey
     ) {
 
-        String key = CacheKeys.reportList(page, size, sort);
+        String key = CacheKeys.reportList(page, size, sort, filterKey);
 
         Object data = redisTemplate.opsForValue().get(key);
 
@@ -83,10 +84,11 @@ public class ReportCacheService {
             int page,
             int size,
             String sort,
+            String filterKey,
             PageResponse<ReportSummaryResponse> response
     ) {
 
-        String key = CacheKeys.reportList(page, size, sort);
+        String key = CacheKeys.reportList(page, size, sort, filterKey);
 
         redisTemplate.opsForValue()
                 .set(key, response, LIST_TTL);
@@ -105,10 +107,11 @@ public class ReportCacheService {
             UUID userId,
             int page,
             int size,
-            String sort
+            String sort,
+            String filterKey
     ) {
 
-        String key = CacheKeys.userReportList(userId, page, size, sort);
+        String key = CacheKeys.userReportList(userId, page, size, sort, filterKey);
 
         Object data = redisTemplate.opsForValue().get(key);
 
@@ -126,10 +129,11 @@ public class ReportCacheService {
             int page,
             int size,
             String sort,
+            String filterKey,
             PageResponse<ReportSummaryResponse> response
     ) {
 
-        String key = CacheKeys.userReportList(userId, page, size, sort);
+        String key = CacheKeys.userReportList(userId, page, size, sort, filterKey);
 
         redisTemplate.opsForValue()
                 .set(key, response, LIST_TTL);
