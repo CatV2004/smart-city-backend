@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.infrastructure.redis.cache;
 
-import com.smartcity.urban_management.infrastructure.redis.key.CacheKeys;
+import com.smartcity.urban_management.infrastructure.redis.key.ReportCacheKeys;
 import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
@@ -31,7 +31,7 @@ public class ReportCacheService {
 
     public Optional<ReportDetailResponse> getReport(UUID id) {
 
-        String key = CacheKeys.reportById(id);
+        String key = ReportCacheKeys.reportById(id);
 
         Object data = redisTemplate.opsForValue().get(key);
 
@@ -46,7 +46,7 @@ public class ReportCacheService {
 
     public void cacheReport(UUID id, ReportDetailResponse report) {
 
-        String key = CacheKeys.reportById(id);
+        String key = ReportCacheKeys.reportById(id);
 
         redisTemplate.opsForValue()
                 .set(key, report, DETAIL_TTL);
@@ -67,7 +67,7 @@ public class ReportCacheService {
             String filterKey
     ) {
 
-        String key = CacheKeys.reportList(page, size, sort, filterKey);
+        String key = ReportCacheKeys.reportList(page, size, sort, filterKey);
 
         Object data = redisTemplate.opsForValue().get(key);
 
@@ -88,7 +88,7 @@ public class ReportCacheService {
             PageResponse<ReportSummaryResponse> response
     ) {
 
-        String key = CacheKeys.reportList(page, size, sort, filterKey);
+        String key = ReportCacheKeys.reportList(page, size, sort, filterKey);
 
         redisTemplate.opsForValue()
                 .set(key, response, LIST_TTL);
@@ -111,7 +111,7 @@ public class ReportCacheService {
             String filterKey
     ) {
 
-        String key = CacheKeys.userReportList(userId, page, size, sort, filterKey);
+        String key = ReportCacheKeys.userReportList(userId, page, size, sort, filterKey);
 
         Object data = redisTemplate.opsForValue().get(key);
 
@@ -133,7 +133,7 @@ public class ReportCacheService {
             PageResponse<ReportSummaryResponse> response
     ) {
 
-        String key = CacheKeys.userReportList(userId, page, size, sort, filterKey);
+        String key = ReportCacheKeys.userReportList(userId, page, size, sort, filterKey);
 
         redisTemplate.opsForValue()
                 .set(key, response, LIST_TTL);
@@ -150,7 +150,7 @@ public class ReportCacheService {
 
     public void evictReport(UUID id) {
 
-        String key = CacheKeys.reportById(id);
+        String key = ReportCacheKeys.reportById(id);
 
         redisTemplate.delete(key);
 
@@ -159,7 +159,7 @@ public class ReportCacheService {
 
     public void evictAllReportPages() {
 
-        String pattern = CacheKeys.reportListPattern();
+        String pattern = ReportCacheKeys.reportListPattern();
 
         ScanOptions options = ScanOptions.scanOptions()
                 .match(pattern)
@@ -185,7 +185,7 @@ public class ReportCacheService {
 
     public void evictUserReportPages(UUID userId) {
 
-        String pattern = CacheKeys.userReportListPattern(userId);
+        String pattern = ReportCacheKeys.userReportListPattern(userId);
 
         ScanOptions options = ScanOptions.scanOptions()
                 .match(pattern)

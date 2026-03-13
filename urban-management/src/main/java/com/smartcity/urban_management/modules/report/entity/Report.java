@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.report.entity;
 
+import com.smartcity.urban_management.modules.category.entity.Category;
 import com.smartcity.urban_management.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +32,9 @@ public class Report {
     @Column(nullable = false)
     private String description;
 
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

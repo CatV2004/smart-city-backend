@@ -20,23 +20,24 @@ public interface ReportRepository extends
         JpaRepository<Report, UUID>,
         JpaSpecificationExecutor<Report> {
     @Query("""
-                SELECT new com.smartcity.urban_management.modules.report.dto.ReportDetailResponse(
-                    r.id,
-                    r.title,
-                    r.description,
-                    r.category,
-                    r.status,
-                    cast(function('ST_Y', r.location) as double),
-                    cast(function('ST_X', r.location) as double),
-                    r.address,
-                    u.fullName,
-                    u.id,
-                    r.createdAt,
-                    r.updatedAt
-                )
-                FROM Report r
-                JOIN r.createdBy u
-                WHERE r.id = :id AND r.deletedAt IS NULL
+             SELECT new com.smartcity.urban_management.modules.report.dto.ReportDetailResponse(
+                 r.id,
+                 r.title,
+                 r.description,
+                 c.name,
+                 r.status,
+                 cast(function('ST_Y', r.location) as double),
+                 cast(function('ST_X', r.location) as double),
+                 r.address,
+                 u.fullName,
+                 u.id,
+                 r.createdAt,
+                 r.updatedAt
+             )
+             FROM Report r
+             JOIN r.createdBy u
+             LEFT JOIN r.category c
+             WHERE r.id = :id AND r.deletedAt IS NULL
             """)
     Optional<ReportDetailResponse> findDetailById(UUID id);
 
@@ -45,7 +46,7 @@ public interface ReportRepository extends
                 r.id,
                 r.title,
                 r.description,
-                r.category,
+                c.name,
                 r.status,
                 cast(function('ST_Y', r.location) as double),
                 cast(function('ST_X', r.location) as double),
@@ -56,6 +57,7 @@ public interface ReportRepository extends
             )
             FROM Report r
             JOIN r.createdBy u
+            LEFT JOIN r.category c
             WHERE r.id = :id AND r.deletedAt IS NULL
             """)
     Optional<ReportSummaryResponse> findSummaryById(UUID id);
@@ -79,7 +81,7 @@ public interface ReportRepository extends
                 r.id,
                 r.title,
                 r.description,
-                r.category,
+                c.name,
                 r.status,
                 cast(function('ST_Y', r.location) as double),
                 cast(function('ST_X', r.location) as double),
@@ -90,9 +92,10 @@ public interface ReportRepository extends
             )
             FROM Report r
             JOIN r.createdBy u
+            LEFT JOIN r.category c
             WHERE r.deletedAt IS NULL
             AND (:status IS NULL OR r.status = :status)
-            AND (:category IS NULL OR r.category = :category)
+            AND (:categoryId IS NULL OR c.id = :categoryId)
             AND (
                 :keyword IS NULL
                 OR (r.title IS NOT NULL AND LOWER(r.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')))
@@ -101,7 +104,7 @@ public interface ReportRepository extends
             """)
     Page<ReportSummaryResponse> findAllResponses(
             ReportStatus status,
-            String category,
+            UUID categoryId,
             String keyword,
             Pageable pageable
     );
@@ -125,7 +128,7 @@ public interface ReportRepository extends
                 r.id,
                 r.title,
                 r.description,
-                r.category,
+                c.name,
                 r.status,
                 cast(function('ST_Y', r.location) as double),
                 cast(function('ST_X', r.location) as double),
@@ -136,10 +139,11 @@ public interface ReportRepository extends
             )
             FROM Report r
             JOIN r.createdBy u
+            LEFT JOIN r.category c
             WHERE r.deletedAt IS NULL
             AND u.id = :userId
             AND (:status IS NULL OR r.status = :status)
-            AND (:category IS NULL OR r.category = :category)
+            AND (:categoryId IS NULL OR c.id = :categoryId)
             AND (
                 :keyword IS NULL
                 OR (r.title IS NOT NULL AND LOWER(r.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')))
@@ -149,7 +153,7 @@ public interface ReportRepository extends
     Page<ReportSummaryResponse> findUserReports(
             UUID userId,
             ReportStatus status,
-            String category,
+            UUID categoryId,
             String keyword,
             Pageable pageable
     );
@@ -163,7 +167,7 @@ public interface ReportRepository extends
                     r.id,
                     r.title,
                     r.description,
-                    r.category,
+                    c.name,
                     r.status,
                     cast(function('ST_Y', r.location) as double),
                     cast(function('ST_X', r.location) as double),
@@ -174,6 +178,7 @@ public interface ReportRepository extends
                 )
                 FROM Report r
                 JOIN r.createdBy u
+                LEFT JOIN r.category c
                 WHERE r.deletedAt IS NULL
                 AND u.id = :userId
                 ORDER BY r.createdAt DESC

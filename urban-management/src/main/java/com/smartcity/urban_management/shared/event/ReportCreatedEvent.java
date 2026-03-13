@@ -11,7 +11,7 @@ public record ReportCreatedEvent(
 
         String title,
         String description,
-        String category,
+        UUID categoryId,
 
         double latitude,
         double longitude,

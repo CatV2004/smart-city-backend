@@ -12,7 +12,7 @@ public class DashboardMapper {
                 .id(r.getId())
                 .title(r.getTitle())
                 .description(r.getDescription())
-                .category(r.getCategory())
+                .categoryName(r.getCategoryName())
                 .status(r.getStatus())
                 .latitude(r.getLatitude())
                 .longitude(r.getLongitude())

@@ -26,7 +26,7 @@ public class ReportKafkaEventHandler {
                 .userId(event.userId())
                 .title(event.title())
                 .description(event.description())
-                .category(event.category())
+                .categoryId(event.categoryId())
                 .latitude(event.latitude())
                 .longitude(event.longitude())
                 .address(event.address())

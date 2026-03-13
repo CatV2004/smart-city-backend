@@ -1,15 +1,14 @@
 package com.smartcity.urban_management.modules.report.service.impl;
 
 import com.smartcity.urban_management.infrastructure.redis.cache.ReportCacheService;
+import com.smartcity.urban_management.modules.category.entity.Category;
 import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.modules.report.entity.Report;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
-import com.smartcity.urban_management.modules.report.mapper.ReportMapper;
 import com.smartcity.urban_management.modules.report.pagination.ReportSortField;
 import com.smartcity.urban_management.modules.report.repository.AttachmentRepository;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
-import com.smartcity.urban_management.modules.report.specification.ReportSpecification;
 import com.smartcity.urban_management.modules.user.entity.User;
 import com.smartcity.urban_management.shared.event.ReportCreatedEvent;
 import com.smartcity.urban_management.shared.exception.AppException;
@@ -27,7 +26,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,11 +60,12 @@ public class ReportServiceImpl implements ReportService {
         point.setSRID(4326);
 
         User userRef = entityManager.getReference(User.class, userId);
+        Category cateRef = entityManager.getReference(Category.class, request.getCategoryId());
 
         Report report = Report.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .category(request.getCategory())
+                .category(cateRef)
                 .status(ReportStatus.PENDING)
                 .location(point)
                 .address(request.getAddress())
@@ -81,7 +80,7 @@ public class ReportServiceImpl implements ReportService {
                         userId,
                         report.getTitle(),
                         report.getDescription(),
-                        report.getCategory(),
+                        request.getCategoryId(),
                         report.getLocation().getY(),
                         report.getLocation().getX(),
                         report.getAddress(),
@@ -126,7 +125,7 @@ public class ReportServiceImpl implements ReportService {
         Page<ReportSummaryResponse> result =
                 repository.findAllResponses(
                         filter.getStatus(),
-                        filter.getCategory(),
+                        filter.getCategoryId(),
                         keywordParam,
                         pageable
                 );
@@ -178,7 +177,7 @@ public class ReportServiceImpl implements ReportService {
                 repository.findUserReports(
                         userId,
                         filter.getStatus(),
-                        filter.getCategory(),
+                        filter.getCategoryId(),
                         keywordParam,
                         pageable
                 );
@@ -359,7 +358,7 @@ public class ReportServiceImpl implements ReportService {
         return String.format(
                 "status:%s|category:%s|keyword:%s",
                 filter.getStatus(),
-                filter.getCategory(),
+                filter.getCategoryId(),
                 filter.getKeyword()
         );
     }

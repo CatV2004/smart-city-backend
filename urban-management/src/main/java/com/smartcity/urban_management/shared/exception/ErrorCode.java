@@ -33,7 +33,11 @@ public enum ErrorCode {
 
     // ===== FILE =====
     FILE_UPLOAD_FAILED(HttpStatus.BAD_GATEWAY, "FIL_502_1", "File upload failed"),
-    FILE_DELETE_FAILED(HttpStatus.BAD_GATEWAY, "FIL_502_2", "File delete failed");
+    FILE_DELETE_FAILED(HttpStatus.BAD_GATEWAY, "FIL_502_2", "File delete failed"),
+
+    // ===== CATEGORY =====
+    CATEGORY_SLUG_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_1", "Category slug already exists"),
+    CATEGORY_NAME_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_2", "Category name already exists");
 
 
     private final HttpStatus status;

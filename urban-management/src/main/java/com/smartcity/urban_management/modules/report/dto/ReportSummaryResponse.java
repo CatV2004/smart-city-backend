@@ -17,7 +17,7 @@ public class ReportSummaryResponse {
     private UUID id;
     private String title;
     private String description;
-    private String category;
+    private String categoryName;
     private ReportStatus status;
 
     private Double latitude;
@@ -34,7 +34,7 @@ public class ReportSummaryResponse {
             UUID id,
             String title,
             String description,
-            String category,
+            String categoryName,
             ReportStatus status,
             Double latitude,
             Double longitude,
@@ -46,7 +46,7 @@ public class ReportSummaryResponse {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.category = category;
+        this.categoryName = categoryName;
         this.status = status;
         this.latitude = latitude;
         this.longitude = longitude;

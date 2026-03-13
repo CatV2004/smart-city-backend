@@ -52,7 +52,7 @@ management:
 
 app:
   upload:
-    max-file-size: 25MB
+    max-file-size: 100MB
   report:
     auto-approve: false
   jwt:

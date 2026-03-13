@@ -3,6 +3,8 @@ package com.smartcity.urban_management.modules.report.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class ReportCreateRequest {
 
@@ -12,8 +14,8 @@ public class ReportCreateRequest {
     @Schema(example = "Đường bị hư hỏng nghiêm trọng")
     private String description;
 
-    @Schema(example = "TRAFFIC")
-    private String category;
+    @Schema(example = "550e8400-e29b-41d4-a716-446655440000")
+    private UUID categoryId;
 
     @Schema(example = "10.7769")
     private Double latitude;

@@ -31,31 +31,14 @@ public class ReportController {
             @RequestBody ReportCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-
         return reportService.create(request, user.getId());
-    }
-
-    @GetMapping
-    public PageResponse<ReportSummaryResponse> getAll(
-            @RequestParam(required = false) ReportStatus status,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String keyword,
-
-            @ModelAttribute PageRequestDto request
-    ) {
-        ReportFilterRequest filter = new ReportFilterRequest();
-        filter.setStatus(status);
-        filter.setCategory(category);
-        filter.setKeyword(keyword);
-
-        return reportService.findAll(filter, request);
     }
 
     @Operation(summary = "Get all reports of the authenticated user")
     @GetMapping("/my")
     public PageResponse<ReportSummaryResponse> getMyReports(
             @RequestParam(required = false) ReportStatus status,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String keyword,
 
             @AuthenticationPrincipal CustomUserDetails user,
@@ -63,7 +46,7 @@ public class ReportController {
     ) {
         ReportFilterRequest filter = new ReportFilterRequest();
         filter.setStatus(status);
-        filter.setCategory(category);
+        filter.setCategoryId(categoryId);
         filter.setKeyword(keyword);
 
         return reportService.findByUserId(user.getId(), filter, request);
@@ -73,16 +56,6 @@ public class ReportController {
     @GetMapping("/{reportId}")
     public ReportDetailResponse getById(@PathVariable String reportId) {
         return reportService.findById(reportId);
-    }
-
-    @Operation(summary = "Admin update report status")
-    @PatchMapping("/{id}/status")
-    public ReportDetailResponse updateStatus(
-            @PathVariable UUID id,
-            @RequestBody UpdateReportStatusRequest request,
-            @AuthenticationPrincipal CustomUserDetails admin
-    ) {
-        return reportService.updateStatus(id, request, admin.getId());
     }
 
     @Operation(summary = "Delete report")

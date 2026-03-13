@@ -16,7 +16,7 @@ public class RecentReportDto {
     private UUID id;
     private String title;
     private String description;
-    private String category;
+    private String categoryName;
     private ReportStatus status;
 
     private Double latitude;
