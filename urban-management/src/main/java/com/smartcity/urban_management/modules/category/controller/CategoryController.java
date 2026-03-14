@@ -1,14 +1,15 @@
 package com.smartcity.urban_management.modules.category.controller;
 
 import com.smartcity.urban_management.modules.category.dto.CategoryCreateRequest;
+import com.smartcity.urban_management.modules.category.dto.CategoryFilterRequest;
 import com.smartcity.urban_management.modules.category.dto.CategoryResponse;
 import com.smartcity.urban_management.modules.category.service.CategoryService;
-import com.smartcity.urban_management.security.user.CustomUserDetails;
+import com.smartcity.urban_management.shared.pagination.PageRequestDto;
+import com.smartcity.urban_management.shared.pagination.PageResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,9 +19,19 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @Operation(summary = "Get categories")
     @GetMapping
-    public List<CategoryResponse> getAll() {
-        return categoryService.getAll();
+    public PageResponse<CategoryResponse> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean active,
+            @ModelAttribute PageRequestDto request
+    ) {
+
+        CategoryFilterRequest filter = new CategoryFilterRequest();
+        filter.setKeyword(keyword);
+        filter.setActive(active);
+
+        return categoryService.getAll(filter, request);
     }
 
     @PostMapping

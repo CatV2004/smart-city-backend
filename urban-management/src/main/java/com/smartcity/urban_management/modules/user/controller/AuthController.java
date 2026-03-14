@@ -52,4 +52,22 @@ public class AuthController {
     ) {
         return userService.getCurrentUser(user.getId());
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+
+        ResponseCookie cookie = ResponseCookie
+                .from("access_token", "")
+                .httpOnly(true)
+                .secure(false) // production = true
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
 }

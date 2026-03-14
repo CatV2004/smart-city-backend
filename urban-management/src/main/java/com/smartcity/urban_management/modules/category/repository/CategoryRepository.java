@@ -1,7 +1,10 @@
 package com.smartcity.urban_management.modules.category.repository;
 
 import com.smartcity.urban_management.modules.category.entity.Category;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,4 +16,15 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     boolean existsBySlug(String slug);
 
     boolean existsByName(String name);
+
+    @Query("""
+            SELECT c FROM Category c
+            WHERE (
+                :keyword IS NULL
+                OR (c.name IS NOT NULL
+                    AND LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')))
+            )
+            AND (:active IS NULL OR c.isActive = :active)
+            """)
+    Page<Category> search(String keyword, Boolean active, Pageable pageable);
 }

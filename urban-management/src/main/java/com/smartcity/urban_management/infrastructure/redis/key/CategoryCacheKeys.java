@@ -4,22 +4,22 @@ import java.util.UUID;
 
 public final class CategoryCacheKeys {
 
-    private CategoryCacheKeys() {}
+    private static final String PREFIX = "category";
 
-    private static final String PREFIX = "urban:category:";
-
-    /* ===== DETAIL ===== */
     public static String categoryById(UUID id) {
-        return PREFIX + "detail:" + id;
+        return PREFIX + ":detail:" + id;
     }
 
-    /* ===== LIST ===== */
     public static String categoryList() {
-        return PREFIX + "list:all";
+        return PREFIX + ":list";
     }
 
-    /* ===== PATTERN ===== */
-    public static String categoryListPattern() {
-        return PREFIX + "list:*";
+    public static String categoryPage(int page, int size, String sort, String filter) {
+        return PREFIX + ":page:" + page + ":" + size + ":" + sort + ":" + filter;
     }
+
+    public static String categoryPagePattern() {
+        return PREFIX + ":page:*";
+    }
+
 }
