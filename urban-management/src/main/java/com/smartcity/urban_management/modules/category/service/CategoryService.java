@@ -21,4 +21,6 @@ public interface CategoryService {
     CategoryResponse findById(UUID id);
 
     PageResponse<CategoryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request);
+
+    CategoryResponse findBySlug(String slug);
 }

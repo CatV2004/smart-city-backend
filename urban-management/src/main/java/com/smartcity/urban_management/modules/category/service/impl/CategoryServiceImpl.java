@@ -20,6 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.smartcity.urban_management.shared.util.UpdateUtils.setIfNotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,32 +61,25 @@ public class CategoryServiceImpl implements CategoryService {
         return mapper.toResponse(category);
     }
 
+    @Transactional
     @Override
     public CategoryResponse update(UUID id, CategoryUpdateRequest request) {
 
+        if (request == null) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (request.getName() != null)
-            category.setName(request.getName());
-
-        if (request.getSlug() != null)
+        if (request.getSlug() != null && !request.getSlug().equals(category.getSlug())) {
+            if (categoryRepository.existsBySlug(request.getSlug())) {
+                throw new AppException(ErrorCode.CATEGORY_SLUG_DUPLICATE);
+            }
             category.setSlug(request.getSlug());
+        }
 
-        if (request.getDescription() != null)
-            category.setDescription(request.getDescription());
-
-        if (request.getIcon() != null)
-            category.setIcon(request.getIcon());
-
-        if (request.getColor() != null)
-            category.setColor(request.getColor());
-
-        if (request.getAiClass() != null)
-            category.setAiClass(request.getAiClass());
-
-        if (request.getIsActive() != null)
-            category.setActive(request.getIsActive());
+        mapper.updateFromRequest(category, request);
 
         categoryRepository.save(category);
 
@@ -113,6 +109,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public CategoryResponse findBySlug(String slug) {
+        Category category = categoryRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        return mapper.toResponse(category);
+    }
+
+    @Override
     public PageResponse<CategoryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request) {
 
         int page = request.getPage();
@@ -122,12 +126,12 @@ public class CategoryServiceImpl implements CategoryService {
         String filterKey = buildFilterKey(filter);
 
         // ===== CACHE CHECK =====
-//        Optional<PageResponse<CategoryResponse>> cached =
-//                categoryCacheService.getCategoryPage(page, size, sort, filterKey);
-//
-//        if (cached.isPresent()) {
-//            return cached.get();
-//        }
+        Optional<PageResponse<CategoryResponse>> cached =
+                categoryCacheService.getCategoryPage(page, size, sort, filterKey);
+
+        if (cached.isPresent()) {
+            return cached.get();
+        }
 
         // ===== CREATE PAGEABLE =====
         Pageable pageable = PageableFactory.from(request, categorySortField);

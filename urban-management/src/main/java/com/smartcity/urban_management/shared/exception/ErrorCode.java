@@ -37,7 +37,8 @@ public enum ErrorCode {
 
     // ===== CATEGORY =====
     CATEGORY_SLUG_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_1", "Category slug already exists"),
-    CATEGORY_NAME_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_2", "Category name already exists");
+    CATEGORY_NAME_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_2", "Category name already exists"),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT_404", "Category not found");
 
 
     private final HttpStatus status;

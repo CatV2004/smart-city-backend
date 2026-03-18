@@ -17,5 +17,5 @@ public class CategoryUpdateRequest {
 
     private String aiClass;
 
-    private Boolean isActive;
+    private Boolean active;
 }
