@@ -1,4 +1,4 @@
-package com.smartcity.urban_management.modules.report.dto;
+package com.smartcity.urban_management.modules.report.dto.summary;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

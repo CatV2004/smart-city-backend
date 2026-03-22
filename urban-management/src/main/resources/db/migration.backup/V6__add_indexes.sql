@@ -20,4 +20,3 @@ ON notifications(user_id, is_read);
 -- ATTACHMENTS
 CREATE INDEX idx_attachments_report
 ON attachments(report_id);
-

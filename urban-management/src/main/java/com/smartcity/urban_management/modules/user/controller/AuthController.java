@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public UserResponse getCurrentUser(
+    public UserDetailResponse getCurrentUser(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         return userService.getCurrentUser(user.getId());

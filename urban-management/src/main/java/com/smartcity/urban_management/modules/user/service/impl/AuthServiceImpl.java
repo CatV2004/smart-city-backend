@@ -2,6 +2,7 @@ package com.smartcity.urban_management.modules.user.service.impl;
 
 import com.smartcity.urban_management.modules.user.dto.*;
 import com.smartcity.urban_management.modules.user.entity.Role;
+import com.smartcity.urban_management.modules.user.entity.RoleName;
 import com.smartcity.urban_management.modules.user.entity.User;
 import com.smartcity.urban_management.modules.user.repository.RoleRepository;
 import com.smartcity.urban_management.modules.user.repository.UserRepository;
@@ -48,13 +49,25 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void register(RegisterRequest request) {
 
+        if (request == null) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
+        String email = request.getEmail().trim().toLowerCase();
+        String phone = request.getPhoneNumber().trim();
+
+        if (email.isEmpty() || phone.isEmpty() || request.getPassword() == null) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         } else if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
-        Role role = roleRepository.findByName("CITIZEN")
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        Role role = roleRepository.findByName(RoleName.CITIZEN.name())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         User user = User.builder()
                 .email(request.getEmail())

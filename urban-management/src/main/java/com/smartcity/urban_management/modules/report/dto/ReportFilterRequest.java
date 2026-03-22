@@ -12,6 +12,8 @@ public class ReportFilterRequest {
 
     private ReportStatus status;
 
+    private ReportDisplayStatus displayStatus;
+
     private UUID categoryId;;
 
     private String keyword;

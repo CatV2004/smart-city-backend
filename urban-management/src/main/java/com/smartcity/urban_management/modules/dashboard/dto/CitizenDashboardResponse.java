@@ -15,4 +15,6 @@ public class CitizenDashboardResponse {
 
     private List<RecentReportDto> recentReports;
 
+    private List<CategoryCountDto> categoryBreakdown;
+
 }

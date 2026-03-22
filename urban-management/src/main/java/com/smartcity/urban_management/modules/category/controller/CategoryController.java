@@ -1,9 +1,6 @@
 package com.smartcity.urban_management.modules.category.controller;
 
-import com.smartcity.urban_management.modules.category.dto.CategoryCreateRequest;
-import com.smartcity.urban_management.modules.category.dto.CategoryFilterRequest;
-import com.smartcity.urban_management.modules.category.dto.CategoryResponse;
-import com.smartcity.urban_management.modules.category.dto.CategoryUpdateRequest;
+import com.smartcity.urban_management.modules.category.dto.*;
 import com.smartcity.urban_management.modules.category.service.CategoryService;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
@@ -11,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,29 +20,36 @@ public class CategoryController {
 
     @Operation(summary = "Get categories")
     @GetMapping
-    public PageResponse<CategoryResponse> getAll(
+    public PageResponse<CategorySummaryResponse> getAll(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) UUID departmentId,
             @ModelAttribute PageRequestDto request
     ) {
 
         CategoryFilterRequest filter = new CategoryFilterRequest();
         filter.setKeyword(keyword);
         filter.setActive(active);
+        filter.setDepartmentId(departmentId);
 
         return categoryService.getAll(filter, request);
     }
 
+    @GetMapping("/active")
+    public List<CategorySummaryResponse> getAllActive() {
+        return categoryService.getAllActive();
+    }
+
     @Operation(summary = "Get detail category by slug")
     @GetMapping("/{slug}")
-    public CategoryResponse getCategoryBySlug(
+    public CategoryDetailResponse getCategoryBySlug(
             @PathVariable String slug
-    ){
+    ) {
         return categoryService.findBySlug(slug);
     }
 
     @PostMapping
-    public CategoryResponse create(
+    public CategoryDetailResponse create(
             @RequestBody CategoryCreateRequest request
     ) {
         return categoryService.create(request);
@@ -59,7 +64,7 @@ public class CategoryController {
 
     @PatchMapping("/{cateId}")
     @Operation(summary = "Update category")
-    public CategoryResponse update(
+    public CategoryDetailResponse update(
             @PathVariable UUID cateId,
             @RequestBody CategoryUpdateRequest request
     ) {

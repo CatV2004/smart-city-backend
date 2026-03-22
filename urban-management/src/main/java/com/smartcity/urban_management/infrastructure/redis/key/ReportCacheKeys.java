@@ -4,49 +4,27 @@ import java.util.UUID;
 
 public final class ReportCacheKeys {
 
-    private ReportCacheKeys() {
+    private static final String PREFIX = CachePrefix.REPORT.value();
+
+    public static String reportById(UUID id, String role) {
+        return "%s:detail:%s:%s".formatted(PREFIX, role, id);
     }
 
-    private static final String PREFIX = "urban:report:";
-
-    /* ========= DETAIL ========= */
-
-    public static String reportById(UUID id) {
-        return PREFIX + "detail:" + id;
+    public static String reportList(int page, int size, String sort, String filterKey, String role) {
+        return "%s:list:%s:%d:%d:%s:%s"
+                .formatted(PREFIX, role, page, size, sort, filterKey);
     }
 
-    /* ========= LIST ========= */
-
-    public static String reportList(
-            int page,
-            int size,
-            String sort,
-            String filterKey
-    ) {
-        return PREFIX + "list:%d:%d:%s:%s"
-                .formatted(page, size, sort, filterKey);
+    public static String userReportList(UUID userId, int page, int size, String sort, String filterKey) {
+        return "%s:list:user:%s:%d:%d:%s:%s"
+                .formatted(PREFIX, userId, page, size, sort, filterKey);
     }
-
-    /* ========= REPORTS OF USER LIST ========= */
-
-    public static String userReportList(
-            UUID userId,
-            int page,
-            int size,
-            String sort,
-            String filterKey
-    ) {
-        return PREFIX + "list:user:%s:%d:%d:%s:%s"
-                .formatted(userId, page, size, sort, filterKey);
-    }
-
-    /* ========= PATTERN ========= */
 
     public static String reportListPattern() {
-        return PREFIX + "list:*";
+        return "%s:list:*".formatted(PREFIX);
     }
 
     public static String userReportListPattern(UUID userId) {
-        return PREFIX + "list:user:%s:*".formatted(userId);
+        return "%s:list:user:%s:*".formatted(PREFIX, userId);
     }
 }

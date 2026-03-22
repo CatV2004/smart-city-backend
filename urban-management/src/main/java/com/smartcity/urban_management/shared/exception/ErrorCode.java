@@ -23,6 +23,11 @@ public enum ErrorCode {
 
     USER_INACTIVE(HttpStatus.FORBIDDEN, "USR_403_1", "User account is inactive"),
 
+    // ===== ROLE =====
+    ROLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROLE_404", "Role not found"),
+    INVALID_ROLE_ASSIGNMENT(HttpStatus.BAD_REQUEST, "ROLE_400", "Invalid role assignment"
+    ),
+
     // ===== REPORT =====
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "RPT_404", "Report not found"),
     INVALID_REPORT_STATUS(HttpStatus.BAD_REQUEST, "RPT_400_1", "Invalid report status transition"),
@@ -38,8 +43,14 @@ public enum ErrorCode {
     // ===== CATEGORY =====
     CATEGORY_SLUG_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_1", "Category slug already exists"),
     CATEGORY_NAME_DUPLICATE(HttpStatus.CONFLICT, "CAT_409_2", "Category name already exists"),
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT_404", "Category not found");
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT_404_1", "Category not found"),
+    DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT_404_2", "Department not found"),
 
+    // ===== DEPARTMENT =====
+    DEPARTMENT_REQUIRED(HttpStatus.BAD_REQUEST, "DEPARTMENT_400_1", "Department is required for this role"),
+    DEPARTMENT_CODE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DEPARTMENT_400_2", "Department code already exists"),
+    DEPARTMENT_NAME_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DEPARTMENT_400_4", "Department name already exists"),
+    DEPARTMENT_HAS_CATEGORIES(HttpStatus.BAD_REQUEST, "DEPARTMENT_400_3", "Department has categories. Confirm deletion to remove all.");
 
     private final HttpStatus status;
     private final String code;

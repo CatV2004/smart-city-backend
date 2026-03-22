@@ -1,6 +1,10 @@
 package com.smartcity.urban_management.modules.user.repository;
 
+import com.smartcity.urban_management.modules.user.dto.UserDetailResponse;
+import com.smartcity.urban_management.modules.user.dto.UserSummaryResponse;
 import com.smartcity.urban_management.modules.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,4 +32,72 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.id = :id")
     Optional<User> findByIdWithRole(UUID id);
+
+    @Query("""
+                SELECT new com.smartcity.urban_management.modules.user.dto.UserDetailResponse(
+                    u.id,
+                    u.email,
+                    u.fullName,
+                    u.phoneNumber,
+                    new com.smartcity.urban_management.modules.user.dto.RoleResponse(
+                        r.id,
+                        r.name
+                    ),
+                    d.code
+                )
+                FROM User u
+                LEFT JOIN u.role r
+                LEFT JOIN u.department d
+                WHERE u.id = :id
+            """)
+    Optional<UserDetailResponse> findUserResponseById(UUID id);
+
+    @Query("""
+                SELECT new com.smartcity.urban_management.modules.user.dto.UserSummaryResponse(
+                    u.id,
+                    u.fullName,
+                    u.email,
+                    u.phoneNumber,
+                    r.name,
+                    d.code
+                )
+                FROM User u
+                LEFT JOIN u.role r
+                LEFT JOIN u.department d
+                WHERE d.id = :departmentId
+                AND u.deletedAt IS NULL
+            """)
+    Page<UserSummaryResponse> findByDepartment(
+            @Param("departmentId") UUID departmentId,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT new com.smartcity.urban_management.modules.user.dto.UserSummaryResponse(
+                    u.id,
+                    u.fullName,
+                    u.email,
+                    u.phoneNumber,
+                    r.name,
+                    d.code
+                )
+                FROM User u
+                LEFT JOIN u.role r
+                LEFT JOIN u.department d
+                WHERE
+                    (:keyword IS NULL OR 
+                        LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR
+                        LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%'))
+                    )
+                AND (:active IS NULL OR u.isActive = :active)
+                AND (:departmentId IS NULL OR d.id = :departmentId)
+                AND (:roleId IS NULL OR r.id = :roleId)
+            """)
+    Page<UserSummaryResponse> search(
+            @Param("keyword") String keyword,
+            @Param("active") Boolean active,
+            @Param("departmentId") UUID departmentId,
+            @Param("roleId") Long roleId,
+            Pageable pageable
+    );
 }

@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.modules.report.service;
 
-import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.AttachmentCreateRequest;
 import org.springframework.web.multipart.MultipartFile;
 

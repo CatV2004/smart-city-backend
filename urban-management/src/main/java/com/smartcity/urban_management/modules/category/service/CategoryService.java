@@ -1,9 +1,6 @@
 package com.smartcity.urban_management.modules.category.service;
 
-import com.smartcity.urban_management.modules.category.dto.CategoryCreateRequest;
-import com.smartcity.urban_management.modules.category.dto.CategoryFilterRequest;
-import com.smartcity.urban_management.modules.category.dto.CategoryResponse;
-import com.smartcity.urban_management.modules.category.dto.CategoryUpdateRequest;
+import com.smartcity.urban_management.modules.category.dto.*;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 
@@ -12,15 +9,15 @@ import java.util.UUID;
 
 public interface CategoryService {
 
-    CategoryResponse create(CategoryCreateRequest request);
+    CategoryDetailResponse create(CategoryCreateRequest request);
 
-    CategoryResponse update(UUID id, CategoryUpdateRequest request);
+    CategoryDetailResponse update(UUID id, CategoryUpdateRequest request);
 
     void delete(UUID id);
 
-    CategoryResponse findById(UUID id);
+    PageResponse<CategorySummaryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request);
 
-    PageResponse<CategoryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request);
+    List<CategorySummaryResponse> getAllActive();
 
-    CategoryResponse findBySlug(String slug);
+    CategoryDetailResponse findBySlug(String slug);
 }

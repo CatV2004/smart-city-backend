@@ -1,25 +1,18 @@
 package com.smartcity.urban_management.infrastructure.redis.key;
 
-import java.util.UUID;
-
 public final class CategoryCacheKeys {
 
-    private static final String PREFIX = "category";
+    private static final String PREFIX = CachePrefix.CATEGORY.value();
 
-    public static String categoryById(UUID id) {
-        return PREFIX + ":detail:" + id;
-    }
-
-    public static String categoryList() {
-        return PREFIX + ":list";
+    public static String categoryBySlug(String slug) {
+        return CacheKeyBuilder.detail(PREFIX, slug);
     }
 
     public static String categoryPage(int page, int size, String sort, String filter) {
-        return PREFIX + ":page:" + page + ":" + size + ":" + sort + ":" + filter;
+        return CacheKeyBuilder.page(PREFIX, page, size, sort, filter);
     }
 
     public static String categoryPagePattern() {
-        return PREFIX + ":page:*";
+        return CacheKeyBuilder.pattern(PREFIX, "page");
     }
-
 }

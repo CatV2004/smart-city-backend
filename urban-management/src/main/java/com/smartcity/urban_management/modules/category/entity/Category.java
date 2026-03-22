@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.category.entity;
 
+import com.smartcity.urban_management.modules.department.entity.Department;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,6 +36,10 @@ public class Category {
     @Column(name = "ai_class")
     private String aiClass;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
@@ -43,4 +48,7 @@ public class Category {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

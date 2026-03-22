@@ -2,6 +2,8 @@ package com.smartcity.urban_management.modules.category.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class CategoryUpdateRequest {
 
@@ -10,6 +12,8 @@ public class CategoryUpdateRequest {
     private String slug;
 
     private String description;
+
+    private UUID departmentId;
 
     private String icon;
 

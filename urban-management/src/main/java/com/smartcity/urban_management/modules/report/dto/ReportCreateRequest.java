@@ -15,7 +15,7 @@ public class ReportCreateRequest {
     private String description;
 
     @Schema(example = "550e8400-e29b-41d4-a716-446655440000")
-    private UUID categoryId;
+    private UUID userCategoryId;
 
     @Schema(example = "10.7769")
     private Double latitude;

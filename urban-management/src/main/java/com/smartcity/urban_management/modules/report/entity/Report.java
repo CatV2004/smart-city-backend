@@ -33,8 +33,22 @@ public class Report {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @JoinColumn(name = "user_category_id")
+    private Category userCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ai_category_id")
+    private Category aiCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "final_category_id")
+    private Category finalCategory;
+
+    @Column(name = "ai_confidence")
+    private Double aiConfidence;
+
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,9 +1,10 @@
 package com.smartcity.urban_management.modules.dashboard.service.impl;
 
+import com.smartcity.urban_management.modules.dashboard.dto.CategoryCountDto;
 import com.smartcity.urban_management.modules.dashboard.dto.ReportSummaryDto;
 import com.smartcity.urban_management.modules.dashboard.repository.DashboardRepository;
 import com.smartcity.urban_management.modules.dashboard.service.DashboardQueryService;
-import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.ReportCitizenSummaryResponse;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class DashboardQueryServiceImpl implements DashboardQueryService {
     }
 
     @Override
-    public List<ReportSummaryResponse> getRecentReports(UUID citizenId) {
+    public List<ReportCitizenSummaryResponse> getRecentReports(UUID citizenId) {
         return reportService.getRecentReports(
                 citizenId,
                 3

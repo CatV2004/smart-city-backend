@@ -1,9 +1,8 @@
 package com.smartcity.urban_management.modules.report.controller;
 
-import com.smartcity.urban_management.modules.report.dto.ReportDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.ReportFilterRequest;
-import com.smartcity.urban_management.modules.report.dto.ReportSummaryResponse;
-import com.smartcity.urban_management.modules.report.dto.UpdateReportStatusRequest;
+import com.smartcity.urban_management.modules.report.dto.*;
+import com.smartcity.urban_management.modules.report.dto.detail.ReportAdminDetailResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.ReportAdminSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.security.user.CustomUserDetails;
@@ -35,7 +34,7 @@ public class AdminReportController {
     }
 
     @GetMapping
-    public PageResponse<ReportSummaryResponse> getAll(
+    public PageResponse<ReportAdminSummaryResponse> getAll(
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String keyword,
@@ -47,16 +46,22 @@ public class AdminReportController {
         filter.setCategoryId(categoryId);
         filter.setKeyword(keyword);
 
-        return reportService.findAll(filter, request);
+        return reportService.findAllForAdmin(filter, request);
     }
 
     @Operation(summary = "Admin update report status")
     @PatchMapping("/{id}/status")
-    public ReportDetailResponse updateStatus(
+    public ReportAdminDetailResponse updateStatus(
             @PathVariable UUID id,
             @RequestBody UpdateReportStatusRequest request,
             @AuthenticationPrincipal CustomUserDetails admin
     ) {
-        return reportService.updateStatus(id, request, admin.getId());
+        return reportService.adminUpdateStatus(id, request, admin.getId());
+    }
+
+    @Operation(summary = "Get report details by ID")
+    @GetMapping("/{reportId}")
+    public ReportAdminDetailResponse getById(@PathVariable UUID reportId) {
+        return reportService.getAdminDetail(reportId);
     }
 }

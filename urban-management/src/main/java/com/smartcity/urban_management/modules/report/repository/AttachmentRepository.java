@@ -1,11 +1,10 @@
 package com.smartcity.urban_management.modules.report.repository;
 
-import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.Attachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,7 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
     List<Attachment> findByReportId(UUID reportId);
 
     @Query("""
-                SELECT new com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse(
+                SELECT new com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse(
                     a.id,
                     a.report.id,
                     a.fileName,
@@ -31,7 +30,7 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
                 WHERE a.report.id = :reportId AND a.deletedAt IS NULL
                 ORDER BY a.createdAt ASC
             """)
-    Optional<AttachmentSummaryResponse> findAllByReportId(UUID reportId);
+    List<AttachmentSummaryResponse> findAllByReportId(UUID reportId);
 
     void deleteByReportId(UUID reportId);
 

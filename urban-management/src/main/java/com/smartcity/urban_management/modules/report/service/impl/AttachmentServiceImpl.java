@@ -3,7 +3,7 @@ package com.smartcity.urban_management.modules.report.service.impl;
 import com.smartcity.urban_management.infrastructure.storage.FileStorageService;
 import com.smartcity.urban_management.infrastructure.storage.FileUploadResult;
 import com.smartcity.urban_management.infrastructure.storage.StorageFolders;
-import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.AttachmentCreateRequest;
 import com.smartcity.urban_management.modules.report.entity.Attachment;
 import com.smartcity.urban_management.modules.report.entity.Report;

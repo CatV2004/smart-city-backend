@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.dashboard.dto;
 
+import com.smartcity.urban_management.modules.report.dto.ReportDisplayStatus;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,10 +18,7 @@ public class RecentReportDto {
     private String title;
     private String description;
     private String categoryName;
-    private ReportStatus status;
-
-    private Double latitude;
-    private Double longitude;
+    private ReportDisplayStatus status;
 
     private String address;
 

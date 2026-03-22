@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.modules.report.controller;
 
-import com.smartcity.urban_management.modules.report.dto.AttachmentSummaryResponse;
+import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.AttachmentCreateRequest;
 import com.smartcity.urban_management.modules.report.service.AttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
