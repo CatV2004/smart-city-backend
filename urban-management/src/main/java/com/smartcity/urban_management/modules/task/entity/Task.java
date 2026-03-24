@@ -22,7 +22,7 @@ public class Task {
     @GeneratedValue
     private UUID id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "report_id", nullable = false)
     private Report report;
 

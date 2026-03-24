@@ -2,8 +2,8 @@ package com.smartcity.urban_management.modules.report.infrastructure.kafka.produ
 
 import com.smartcity.urban_management.modules.report.messaging.ReportAttachmentsAddedMessage;
 import com.smartcity.urban_management.modules.report.messaging.ReportCreatedMessage;
-import com.smartcity.urban_management.shared.event.ReportAttachmentsAddedEvent;
-import com.smartcity.urban_management.shared.event.ReportCreatedEvent;
+import com.smartcity.urban_management.shared.messaging.event.ReportAttachmentsAddedEvent;
+import com.smartcity.urban_management.shared.messaging.event.ReportCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.modules.department.service;
 
-import com.smartcity.urban_management.modules.department.dto.*;
+import com.smartcity.urban_management.modules.department.dto.department.*;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 

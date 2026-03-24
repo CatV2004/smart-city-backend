@@ -40,6 +40,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
     com.smartcity.urban_management.infrastructure.redis: DEBUG
+    com.smartcity.urban_management.modules.report.service: DEBUG
 
 springdoc:
   api-docs:

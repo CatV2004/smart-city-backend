@@ -1,6 +1,7 @@
 package com.smartcity.urban_management.infrastructure.redis.cache;
 
 import com.smartcity.urban_management.infrastructure.redis.key.CategoryCacheKeys;
+import com.smartcity.urban_management.modules.category.dto.ActiveCategoryResponse;
 import com.smartcity.urban_management.modules.category.dto.CategoryDetailResponse;
 import com.smartcity.urban_management.modules.category.dto.CategorySummaryResponse;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ public class CategoryCacheService {
 
     private static final Duration DETAIL_TTL = Duration.ofMinutes(30);
     private static final Duration PAGE_TTL = Duration.ofMinutes(10);
+    private static final Duration ACTIVE_LIST_TTL = Duration.ofMinutes(30);
 
     /* =========================================================
        CATEGORY DETAIL
@@ -62,6 +65,24 @@ public class CategoryCacheService {
 
     public void evictAllPages() {
         cacheService.deleteByPattern(CategoryCacheKeys.categoryPagePattern());
+    }
+
+    /* =========================================================
+   CATEGORY ACTIVE LIST
+   ========================================================= */
+
+    public Optional<ActiveCategoryResponse> getAllActiveCategories() {
+        String key = CategoryCacheKeys.categoryActiveList();
+        return cacheService.get(key, ActiveCategoryResponse.class);
+    }
+
+    public void cacheAllActiveCategories(ActiveCategoryResponse data) {
+        String key = CategoryCacheKeys.categoryActiveList();
+        cacheService.set(key, data, ACTIVE_LIST_TTL);
+    }
+
+    public void evictAllActiveCategories() {
+        cacheService.delete(CategoryCacheKeys.categoryActiveList());
     }
 
 }

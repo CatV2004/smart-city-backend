@@ -32,4 +32,12 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic reportAIAnalyzedTopic() {
+        return TopicBuilder.name(KafkaTopics.REPORT_AI_ANALYZED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

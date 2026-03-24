@@ -1,8 +1,8 @@
 package com.smartcity.urban_management.infrastructure.redis.cache;
 
 import com.smartcity.urban_management.infrastructure.redis.key.DepartmentCacheKeys;
-import com.smartcity.urban_management.modules.department.dto.DepartmentDetailResponse;
-import com.smartcity.urban_management.modules.department.dto.DepartmentSummaryResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentDetailResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentSummaryResponse;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

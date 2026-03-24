@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.modules.department.controller;
 
-import com.smartcity.urban_management.modules.department.dto.*;
+import com.smartcity.urban_management.modules.department.dto.department.*;
 import com.smartcity.urban_management.modules.department.service.DepartmentService;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
@@ -10,9 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController

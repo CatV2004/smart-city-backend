@@ -2,6 +2,8 @@ package com.smartcity.urban_management.modules.user.service.impl;
 
 import com.smartcity.urban_management.infrastructure.redis.cache.UserCacheService;
 import com.smartcity.urban_management.modules.department.entity.Department;
+import com.smartcity.urban_management.modules.department.entity.DepartmentOffice;
+import com.smartcity.urban_management.modules.department.repository.DepartmentOfficeRepository;
 import com.smartcity.urban_management.modules.department.repository.DepartmentRepository;
 import com.smartcity.urban_management.modules.user.entity.Role;
 import com.smartcity.urban_management.modules.user.entity.RoleName;
@@ -34,10 +36,10 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final DepartmentOfficeRepository officeRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserSortField userSortField = new UserSortField();
-    private final UserCacheService userCacheService;
 
     @Override
     public UserDetailResponse getCurrentUser(UUID userId) {
@@ -46,7 +48,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public CreateUserResponse createUserByAdmin(CreateUserRequest request) {
 
         if (request == null) {
@@ -60,25 +61,24 @@ public class UserServiceImpl implements UserService {
             throw new AppException(ErrorCode.BAD_REQUEST);
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        } else if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+        } else if (userRepository.existsByPhoneNumber(phone)) {
             throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
         }
 
+        // ===== ROLE =====
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         RoleName roleName = RoleName.from(role.getName());
-
         if (!roleName.isAdmin() && !roleName.isStaff()) {
             throw new AppException(ErrorCode.INVALID_ROLE_ASSIGNMENT);
         }
 
+        // ===== DEPARTMENT =====
         Department department = null;
-
         if (roleName.isStaff()) {
-
             if (request.getDepartmentId() == null) {
                 throw new AppException(ErrorCode.DEPARTMENT_REQUIRED);
             }
@@ -87,6 +87,24 @@ public class UserServiceImpl implements UserService {
                     .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
         }
 
+        // ===== OFFICE =====
+        DepartmentOffice office = null;
+
+        if (request.getOfficeId() != null) {
+            office = officeRepository.findById(request.getOfficeId())
+                    .orElseThrow(() -> new AppException(ErrorCode.OFFICE_NOT_FOUND));
+
+            if (department != null &&
+                    !office.getDepartment().getId().equals(department.getId())) {
+                throw new AppException(ErrorCode.OFFICE_NOT_BELONG_TO_DEPARTMENT);
+            }
+        }
+
+        if (roleName.isStaff() && office == null) {
+            throw new AppException(ErrorCode.OFFICE_REQUIRED);
+        }
+
+        // ===== CREATE USER =====
         User user = User.builder()
                 .email(email)
                 .phoneNumber(phone)
@@ -95,64 +113,42 @@ public class UserServiceImpl implements UserService {
                 .role(role)
                 .isActive(Boolean.TRUE)
                 .department(department)
+                .office(office)
                 .build();
 
         userRepository.save(user);
-
-        userCacheService.evictAllUserPages();
-
-        if (department != null) {
-            userCacheService.evictDepartmentUsers(department.getId());
-        }
 
         return new CreateUserResponse(user.getId());
     }
 
     @Override
-    public PageResponse<UserSummaryResponse> getUsersByDepartment(
-            UUID departmentId,
-            PageRequestDto request
-    ) {
-
+    public PageResponse<UserSummaryResponse> getUsersByDepartment(UUID departmentId, PageRequestDto request) {
         Pageable pageable = PageableFactory.from(request, userSortField);
 
-        Page<UserSummaryResponse> pageResult =
-                userRepository.findByDepartment(departmentId, pageable);
+        Page<UserSummaryResponse> pageResult = userRepository.findByDepartment(departmentId, pageable);
 
         return PageMapper.toResponse(pageResult);
     }
 
     @Override
-    public PageResponse<UserSummaryResponse> getAll(
-            UserFilterRequest filter,
-            PageRequestDto request
-    ) {
-        int page = request.getPage();
-        int size = request.getSize();
-        String sort = request.getSort();
-
-
-        // ===== BUILD FILTER KEY =====
-        String filterKey = buildFilterKey(filter);
-
-        // ===== CACHE =====
-        Optional<PageResponse<UserSummaryResponse>> cached =
-                userCacheService.getUserPage(page, size, sort, filterKey);
-
-        if (cached.isPresent()) {
-            return cached.get();
-        }
-
+    public PageResponse<UserSummaryResponse> getUsersByOffice(UUID officeId, PageRequestDto request) {
         Pageable pageable = PageableFactory.from(request, userSortField);
 
-        // ===== CLEAN KEYWORD =====
+        Page<UserSummaryResponse> pageResult = userRepository.findByOffice(officeId, pageable);
+
+        return PageMapper.toResponse(pageResult);
+    }
+
+    @Override
+    public PageResponse<UserSummaryResponse> getAll(UserFilterRequest filter, PageRequestDto request) {
+        Pageable pageable = PageableFactory.from(request, userSortField);
+
         String keyword = filter.getKeyword();
         if (keyword != null) {
             keyword = keyword.trim();
             if (keyword.isEmpty()) keyword = null;
         }
 
-        // ===== QUERY (projection luôn) =====
         Page<UserSummaryResponse> pageResult = userRepository.search(
                 keyword,
                 filter.getActive(),
@@ -161,28 +157,7 @@ public class UserServiceImpl implements UserService {
                 pageable
         );
 
-        PageResponse<UserSummaryResponse> response =
-                PageMapper.toResponse(pageResult);
-
-        // ===== CACHE =====
-        userCacheService.cacheUserPage(page, size, sort, filterKey, response);
-
-        return response;
-    }
-
-    private String buildFilterKey(UserFilterRequest filter) {
-
-        return String.format(
-                "keyword:%s|active:%s|dept:%s|role:%s",
-                safe(filter.getKeyword()),
-                safe(filter.getActive()),
-                safe(filter.getDepartmentId()),
-                safe(filter.getRoleId())
-        );
-    }
-
-    private String safe(Object o) {
-        return o == null ? "" : o.toString();
+        return PageMapper.toResponse(pageResult);
     }
 
 }

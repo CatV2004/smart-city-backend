@@ -19,6 +19,9 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     Optional<Category> findBySlug(String slug);
 
+    @Query("SELECT c FROM Category c WHERE c.aiClass = :aiClass")
+    Optional<Category> findByAiClass(@Param("aiClass") String aiClass);
+
     boolean existsBySlug(String slug);
 
     boolean existsByName(String name);

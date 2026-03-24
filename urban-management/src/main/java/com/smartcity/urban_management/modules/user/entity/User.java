@@ -1,6 +1,7 @@
 package com.smartcity.urban_management.modules.user.entity;
 
 import com.smartcity.urban_management.modules.department.entity.Department;
+import com.smartcity.urban_management.modules.department.entity.DepartmentOffice;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,10 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "office_id")
+    private DepartmentOffice office;
 
     @Column(name = "phone_verified")
     private Boolean phoneVerified = false;

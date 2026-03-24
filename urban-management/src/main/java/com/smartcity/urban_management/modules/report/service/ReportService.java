@@ -6,10 +6,11 @@ import com.smartcity.urban_management.modules.report.dto.detail.ReportCitizenDet
 import com.smartcity.urban_management.modules.report.dto.detail.ReportStaffDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportAdminSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportCitizenSummaryResponse;
+import com.smartcity.urban_management.modules.report.entity.Report;
+import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface ReportService {
@@ -24,6 +25,10 @@ public interface ReportService {
 
     ReportCitizenDetailResponse getCitizenDetail(UUID id);
 
+    void updateStatus(Report report, ReportStatus newStatus, String changedBy, String note);
+
+    void updateFinalCategory(UUID reportId, UpdateFinalCategoryRequest finalCateRequest, UUID adminId);
+
     ReportAdminDetailResponse adminUpdateStatus(UUID reportId, UpdateReportStatusRequest request, UUID adminId);
 
     ReportStaffDetailResponse staffUpdateStatus(UUID reportId, UpdateReportStatusRequest request);
@@ -34,5 +39,5 @@ public interface ReportService {
 
     PageResponse<ReportCitizenSummaryResponse> findByUserId(UUID userId, ReportFilterRequest filter, PageRequestDto request);
 
-    List<ReportCitizenSummaryResponse> getRecentReports(UUID citizenId, int limit);
+    RecentReportData getRecentReports(UUID citizenId, int limit);
 }

@@ -14,4 +14,5 @@ public class CreateUserRequest {
 
     private Long roleId;
     private UUID departmentId;
+    private UUID officeId;
 }

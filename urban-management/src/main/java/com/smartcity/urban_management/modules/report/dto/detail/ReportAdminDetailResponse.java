@@ -16,6 +16,7 @@ public class ReportAdminDetailResponse extends ReportDetailBaseResponse {
 
     private String userCategoryName;
     private String aiCategoryName;
+    private String finalCategoryName;
 
     private Double aiConfidence;
 

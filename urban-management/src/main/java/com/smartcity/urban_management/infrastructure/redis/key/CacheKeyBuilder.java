@@ -24,4 +24,8 @@ public final class CacheKeyBuilder {
     private static String safe(String value) {
         return value == null ? "all" : value;
     }
+
+    public static String key(String prefix, String type) {
+        return "%s:%s".formatted(prefix, type);
+    }
 }

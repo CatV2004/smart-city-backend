@@ -17,7 +17,7 @@ public interface CategoryService {
 
     PageResponse<CategorySummaryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request);
 
-    List<CategorySummaryResponse> getAllActive();
+    ActiveCategoryResponse getAllActive();
 
     CategoryDetailResponse findBySlug(String slug);
 }

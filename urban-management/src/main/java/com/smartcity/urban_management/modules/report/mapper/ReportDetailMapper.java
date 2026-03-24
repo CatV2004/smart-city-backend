@@ -70,6 +70,7 @@ public class ReportDetailMapper {
         return builder
                 .userCategoryName(p.getUserCategoryName())
                 .aiCategoryName(p.getAiCategoryName())
+                .finalCategoryName(p.getFinalCategoryName())
                 .aiConfidence(p.getAiConfidence())
                 .approvedByName(p.getApprovedByName())
                 .approvedById(p.getApprovedById())

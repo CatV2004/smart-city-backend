@@ -54,4 +54,15 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/office/{officeId}")
+    public ResponseEntity<PageResponse<UserSummaryResponse>> getUsersByOffice(
+            @PathVariable UUID officeId,
+            @ModelAttribute PageRequestDto request
+    ) {
+        PageResponse<UserSummaryResponse> response =
+                userService.getUsersByOffice(officeId, request);
+
+        return ResponseEntity.ok(response);
+    }
 }

@@ -11,8 +11,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface ReportRepository extends
@@ -81,7 +83,7 @@ public interface ReportRepository extends
                 LEFT JOIN r.aiCategory ac
                 LEFT JOIN r.finalCategory fc
                 WHERE r.deletedAt IS NULL
-                AND (:status IS NULL OR r.status = :status)
+                AND (:statuses IS NULL OR r.status IN (:statuses))
                 AND (:categoryId IS NULL OR (uc.id = :categoryId OR ac.id = :categoryId OR fc.id = :categoryId))
                 AND (
                     :keyword IS NULL
@@ -90,9 +92,9 @@ public interface ReportRepository extends
                 )
             """)
     Page<ReportSummaryProjection> findAllSummary(
-            ReportStatus status,
-            UUID categoryId,
-            String keyword,
+            @Param("statuses") Set<ReportStatus> statuses,
+            @Param("categoryId") UUID categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
@@ -193,4 +195,31 @@ public interface ReportRepository extends
     Optional<Report> findByIdAndDeletedAtIsNull(UUID id);
 
     boolean existsByIdAndCreatedBy_Id(UUID id, UUID userId);
+
+    // Admin Dashboard
+    Integer countByStatusAndDeletedAtIsNull(ReportStatus status);
+
+    Integer countByStatusInAndDeletedAtIsNull(List<ReportStatus> statuses);
+
+    Integer countByStatusAndCreatedAtBetweenAndDeletedAtIsNull(
+            ReportStatus status,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    Integer countByStatusInAndCreatedAtBetweenAndDeletedAtIsNull(
+            List<ReportStatus> statuses,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    Integer countByDeletedAtIsNull();
+
+    // Query methods for priority reports
+    Page<Report> findByStatusInAndDeletedAtIsNull(List<ReportStatus> statuses, Pageable pageable);
+
+    // Activity methods
+    List<Report> findTop5ByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(ReportStatus status);
+
+    List<Report> findTop5ByStatusInAndDeletedAtIsNullOrderByUpdatedAtDesc(List<ReportStatus> statuses);
 }

@@ -14,5 +14,7 @@ public interface UserService {
 
     PageResponse<UserSummaryResponse> getUsersByDepartment(UUID departmentId, PageRequestDto request);
 
+    PageResponse<UserSummaryResponse> getUsersByOffice(UUID officeId, PageRequestDto request);
+
     PageResponse<UserSummaryResponse> getAll(UserFilterRequest filter, PageRequestDto request);
 }

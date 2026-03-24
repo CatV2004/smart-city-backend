@@ -27,4 +27,12 @@ public final class ReportCacheKeys {
     public static String userReportListPattern(UUID userId) {
         return "%s:list:user:%s:*".formatted(PREFIX, userId);
     }
+
+    public static String recentReports(UUID citizenId, int limit) {
+        return "%s:list:recent:%s:%d".formatted(PREFIX, citizenId, limit);
+    }
+
+    public static String recentReportsPattern(UUID citizenId) {
+        return "%s:list:recent:%s:*".formatted(PREFIX, citizenId);
+    }
 }

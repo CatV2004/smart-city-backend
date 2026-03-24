@@ -4,10 +4,6 @@ import com.smartcity.urban_management.modules.category.entity.Category;
 import com.smartcity.urban_management.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;

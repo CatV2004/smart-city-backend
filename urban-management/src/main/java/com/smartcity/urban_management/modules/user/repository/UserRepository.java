@@ -83,6 +83,27 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                 )
                 FROM User u
                 LEFT JOIN u.role r
+                LEFT JOIN u.office o
+                LEFT JOIN u.department d
+                WHERE o.id = :officeId
+                AND u.deletedAt IS NULL
+            """)
+    Page<UserSummaryResponse> findByOffice(
+            @Param("officeId") UUID officeId,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT new com.smartcity.urban_management.modules.user.dto.UserSummaryResponse(
+                    u.id,
+                    u.fullName,
+                    u.email,
+                    u.phoneNumber,
+                    r.name,
+                    d.code
+                )
+                FROM User u
+                LEFT JOIN u.role r
                 LEFT JOIN u.department d
                 WHERE
                     (:keyword IS NULL OR 
@@ -100,4 +121,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             @Param("roleId") Long roleId,
             Pageable pageable
     );
+
+    long countByDepartment_IdAndDeletedAtIsNull(UUID departmentId);
+    long countByOffice_IdAndDeletedAtIsNull(UUID officeId);
 }

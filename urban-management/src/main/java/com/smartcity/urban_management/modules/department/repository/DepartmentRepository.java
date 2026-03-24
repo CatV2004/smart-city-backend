@@ -1,7 +1,7 @@
 package com.smartcity.urban_management.modules.department.repository;
 
-import com.smartcity.urban_management.modules.department.dto.DepartmentResponse;
-import com.smartcity.urban_management.modules.department.dto.DepartmentSummaryResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentSummaryResponse;
 import com.smartcity.urban_management.modules.department.entity.Department;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface DepartmentRepository extends JpaRepository<Department, UUID> {
 
     @Query("""
-                SELECT new com.smartcity.urban_management.modules.department.dto.DepartmentSummaryResponse(
+                SELECT new com.smartcity.urban_management.modules.department.dto.department.DepartmentSummaryResponse(
                     d.id,
                     d.name,
                     d.code,
@@ -43,7 +43,7 @@ public interface DepartmentRepository extends JpaRepository<Department, UUID> {
     List<Department> findByIsActiveTrueAndCodeIn(List<String> codes);
 
     @Query("""
-                SELECT new com.smartcity.urban_management.modules.department.dto.DepartmentResponse(
+                SELECT new com.smartcity.urban_management.modules.department.dto.department.DepartmentResponse(
                     c.department.id,
                     c.department.name,
                     c.department.code

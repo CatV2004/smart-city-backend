@@ -6,4 +6,6 @@ import lombok.Data;
 @Data
 public class UpdateReportStatusRequest {
     private ReportStatus status;
+
+    private String note;
 }

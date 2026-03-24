@@ -11,7 +11,7 @@ import com.smartcity.urban_management.modules.report.mapper.AttachmentMapper;
 import com.smartcity.urban_management.modules.report.repository.AttachmentRepository;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.AttachmentService;
-import com.smartcity.urban_management.shared.event.ReportAttachmentsAddedEvent;
+import com.smartcity.urban_management.shared.messaging.event.ReportAttachmentsAddedEvent;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

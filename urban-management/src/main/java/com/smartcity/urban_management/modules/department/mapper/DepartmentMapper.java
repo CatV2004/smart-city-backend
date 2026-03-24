@@ -1,7 +1,7 @@
 package com.smartcity.urban_management.modules.department.mapper;
 
-import com.smartcity.urban_management.modules.department.dto.CreateDepartmentRequest;
-import com.smartcity.urban_management.modules.department.dto.DepartmentDetailResponse;
+import com.smartcity.urban_management.modules.department.dto.department.CreateDepartmentRequest;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentDetailResponse;
 import com.smartcity.urban_management.modules.department.entity.Department;
 import org.springframework.stereotype.Component;
 

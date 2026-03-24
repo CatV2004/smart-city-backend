@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.infrastructure.redis.cache;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.Cursor;
@@ -30,7 +31,6 @@ public class RedisCacheService {
         log.debug("❌ Redis MISS [{}]", key);
         return Optional.empty();
     }
-
     /* ================= SET ================= */
 
     public void set(String key, Object value, Duration ttl) {

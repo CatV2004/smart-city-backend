@@ -1,6 +1,6 @@
 package com.smartcity.urban_management.modules.category.dto;
 
-import com.smartcity.urban_management.modules.department.dto.DepartmentResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentResponse;
 import lombok.*;
 
 import java.time.LocalDateTime;

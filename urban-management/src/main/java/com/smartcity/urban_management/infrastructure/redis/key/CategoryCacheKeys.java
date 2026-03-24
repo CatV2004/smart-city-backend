@@ -15,4 +15,8 @@ public final class CategoryCacheKeys {
     public static String categoryPagePattern() {
         return CacheKeyBuilder.pattern(PREFIX, "page");
     }
+
+    public static String categoryActiveList() {
+        return CacheKeyBuilder.key(PREFIX, "active:list");
+    }
 }

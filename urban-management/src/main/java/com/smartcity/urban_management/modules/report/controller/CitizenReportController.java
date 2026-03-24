@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Tag(name = "Reports", description = "Report management APIs")
@@ -37,7 +38,6 @@ public class CitizenReportController {
     @Operation(summary = "Get all reports of the authenticated user")
     @GetMapping("/my")
     public PageResponse<ReportCitizenSummaryResponse> getMyReports(
-            @RequestParam(required = false) ReportStatus status,
             @RequestParam(required = false) ReportDisplayStatus displayStatus,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String keyword,
@@ -46,7 +46,6 @@ public class CitizenReportController {
             @ModelAttribute PageRequestDto request
     ) {
         ReportFilterRequest filter = new ReportFilterRequest();
-        filter.setStatus(status);
         filter.setCategoryId(categoryId);
         filter.setKeyword(keyword);
         filter.setDisplayStatus(displayStatus);

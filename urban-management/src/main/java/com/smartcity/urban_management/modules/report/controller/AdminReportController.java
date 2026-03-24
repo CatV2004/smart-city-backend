@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -35,14 +36,14 @@ public class AdminReportController {
 
     @GetMapping
     public PageResponse<ReportAdminSummaryResponse> getAll(
-            @RequestParam(required = false) ReportStatus status,
+            @RequestParam(required = false) Set<ReportStatus> statuses,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) String keyword,
 
             @ModelAttribute PageRequestDto request
     ) {
         ReportFilterRequest filter = new ReportFilterRequest();
-        filter.setStatus(status);
+        filter.setStatuses(statuses);
         filter.setCategoryId(categoryId);
         filter.setKeyword(keyword);
 
@@ -51,17 +52,26 @@ public class AdminReportController {
 
     @Operation(summary = "Admin update report status")
     @PatchMapping("/{id}/status")
-    public ReportAdminDetailResponse updateStatus(
+    public void updateStatus(
             @PathVariable UUID id,
             @RequestBody UpdateReportStatusRequest request,
             @AuthenticationPrincipal CustomUserDetails admin
     ) {
-        return reportService.adminUpdateStatus(id, request, admin.getId());
+        reportService.adminUpdateStatus(id, request, admin.getId());
     }
 
     @Operation(summary = "Get report details by ID")
     @GetMapping("/{reportId}")
     public ReportAdminDetailResponse getById(@PathVariable UUID reportId) {
         return reportService.getAdminDetail(reportId);
+    }
+
+    @PatchMapping("/{reportId}/final-category")
+    public void updateFinalCategory(
+            @RequestBody UpdateFinalCategoryRequest finalCateRequest,
+            @PathVariable UUID reportId,
+            @AuthenticationPrincipal CustomUserDetails admin
+    ) {
+        reportService.updateFinalCategory(reportId, finalCateRequest, admin.getId());
     }
 }

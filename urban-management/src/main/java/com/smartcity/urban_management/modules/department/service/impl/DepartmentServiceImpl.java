@@ -3,13 +3,12 @@ package com.smartcity.urban_management.modules.department.service.impl;
 import com.smartcity.urban_management.infrastructure.redis.cache.CategoryCacheService;
 import com.smartcity.urban_management.infrastructure.redis.cache.DepartmentCacheService;
 import com.smartcity.urban_management.modules.category.repository.CategoryRepository;
-import com.smartcity.urban_management.modules.department.dto.*;
+import com.smartcity.urban_management.modules.department.dto.department.*;
 import com.smartcity.urban_management.modules.department.entity.Department;
 import com.smartcity.urban_management.modules.department.mapper.DepartmentMapper;
 import com.smartcity.urban_management.modules.department.pagination.DepartmentSortField;
 import com.smartcity.urban_management.modules.department.repository.DepartmentRepository;
 import com.smartcity.urban_management.modules.department.service.DepartmentService;
-import com.smartcity.urban_management.modules.report.dto.CreateReportResponse;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
 import com.smartcity.urban_management.shared.pagination.PageMapper;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -43,31 +41,13 @@ public class DepartmentServiceImpl implements DepartmentService {
             DepartmentFilterRequest filter,
             PageRequestDto request
     ) {
-
-        int page = request.getPage();
-        int size = request.getSize();
-        String sort = request.getSort();
-
-        String filterKey = buildFilterKey(filter);
-
-        // ===== CACHE CHECK =====
-        Optional<PageResponse<DepartmentSummaryResponse>> cached =
-                departmentCacheService.getDepartmentPage(page, size, sort, filterKey);
-
-        if (cached.isPresent()) {
-            return cached.get();
-        }
-
         // ===== CREATE PAGEABLE =====
         Pageable pageable = PageableFactory.from(request, departmentSortField);
 
-        // ===== KEYWORD CLEAN =====
+        // ===== CLEAN KEYWORD =====
         String keyword = filter.getKeyword();
-        if (keyword != null) {
-            keyword = keyword.trim();
-            if (keyword.isEmpty()) {
-                keyword = null;
-            }
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
         }
 
         Boolean active = filter.getActive();
@@ -76,82 +56,40 @@ public class DepartmentServiceImpl implements DepartmentService {
         Page<DepartmentSummaryResponse> pageResult =
                 departmentRepository.search(keyword, active, pageable);
 
-        PageResponse<DepartmentSummaryResponse> response =
-                PageMapper.toResponse(pageResult);
-
-        // ===== CACHE SET =====
-        departmentCacheService.cacheDepartmentPage(
-                page,
-                size,
-                sort,
-                filterKey,
-                response
-        );
-
-        return response;
+        // ===== MAP TO RESPONSE =====
+        return PageMapper.toResponse(pageResult);
     }
 
     @Override
     public DepartmentDetailResponse getDepartmentDetail(String code) {
-
-        return departmentCacheService.getDepartmentByCode(code)
-                .orElseGet(() -> {
-
-                    Department department = departmentRepository.findByCode(code)
-                            .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
-
-                    DepartmentDetailResponse response = mapper.toDetail(department);
-
-                    departmentCacheService.cacheDepartmentByCode(code, response);
-
-                    return response;
-                });
+        Department department = departmentRepository.findByCode(code)
+                .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
+        return mapper.toDetail(department);
     }
 
     @Override
     public DepartmentDetailResponse getDepartmentDetail(UUID id) {
-
-        return departmentCacheService.getDepartmentById(id)
-                .orElseGet(() -> {
-
-                    Department department = departmentRepository.findById(id)
-                            .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
-
-                    DepartmentDetailResponse response = mapper.toDetail(department);
-
-                    departmentCacheService.cacheDepartmentById(id, response);
-
-                    return response;
-                });
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
+        return mapper.toDetail(department);
     }
 
     @Transactional
     @Override
     public CreateDepartmentResponse createDepartment(CreateDepartmentRequest request) {
-
-        // 1. Validate unique code
         if (departmentRepository.existsByCode(request.getCode())) {
             throw new AppException(ErrorCode.DEPARTMENT_CODE_ALREADY_EXISTS);
         }
 
-        // 2. Map to entity
         Department department = mapper.toEntity(request);
-
-        // 3. Save DB
         Department saved = departmentRepository.save(department);
-
-        // 4. Evict cache (list/page)
-        departmentCacheService.evictDepartmentList();
-        departmentCacheService.evictAllPages();
 
         return new CreateDepartmentResponse(saved.getId());
     }
 
     @Override
     public List<DepartmentResponse> getAllActiveByCodes(List<String> codes) {
-
         List<Department> departments;
-
         if (codes == null || codes.isEmpty()) {
             departments = departmentRepository.findByIsActiveTrue();
         } else {
@@ -181,19 +119,10 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         if (hasCategories) {
             List<String> slugs = categoryRepository.findSlugsByDepartmentId(departmentId);
-
             categoryRepository.deleteByDepartmentId(departmentId);
-
-            slugs.forEach(categoryCacheService::evictCategoryBySlug);
-
-            categoryCacheService.evictAllPages();
         }
 
         departmentRepository.delete(department);
-
-        departmentCacheService.evictDepartmentById(departmentId);
-        departmentCacheService.evictDepartmentList();
-        departmentCacheService.evictAllPages();
     }
 
     @Override
@@ -214,6 +143,7 @@ public class DepartmentServiceImpl implements DepartmentService {
             }
             department.setName(request.getName());
         }
+
         if (request.getDescription() != null) {
             department.setDescription(request.getDescription());
         }
@@ -223,18 +153,6 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         Department updated = departmentRepository.save(department);
 
-        departmentCacheService.evictDepartmentById(id);
-        departmentCacheService.evictDepartmentList();
-        departmentCacheService.evictAllPages();
-
         return new UpdateDepartmentResponse(updated.getId());
-    }
-
-    private String buildFilterKey(DepartmentFilterRequest filter) {
-        return String.format(
-                "keyword:%s|active:%s",
-                filter.getKeyword() == null ? "" : filter.getKeyword(),
-                filter.getActive() == null ? "" : filter.getActive()
-        );
     }
 }

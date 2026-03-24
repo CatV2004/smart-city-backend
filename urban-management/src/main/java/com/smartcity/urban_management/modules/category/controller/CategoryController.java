@@ -36,7 +36,7 @@ public class CategoryController {
     }
 
     @GetMapping("/active")
-    public List<CategorySummaryResponse> getAllActive() {
+    public ActiveCategoryResponse getAllActive() {
         return categoryService.getAllActive();
     }
 

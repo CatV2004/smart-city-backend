@@ -7,7 +7,7 @@ import com.smartcity.urban_management.modules.category.mapper.CategoryMapper;
 import com.smartcity.urban_management.modules.category.pagination.CategorySortField;
 import com.smartcity.urban_management.modules.category.repository.CategoryRepository;
 import com.smartcity.urban_management.modules.category.service.CategoryService;
-import com.smartcity.urban_management.modules.department.dto.DepartmentResponse;
+import com.smartcity.urban_management.modules.department.dto.department.DepartmentResponse;
 import com.smartcity.urban_management.modules.department.entity.Department;
 import com.smartcity.urban_management.modules.department.repository.DepartmentRepository;
 import com.smartcity.urban_management.shared.exception.AppException;
@@ -22,10 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.smartcity.urban_management.shared.util.UpdateUtils.setIfNotNull;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -67,22 +64,15 @@ public class CategoryServiceImpl implements CategoryService {
                 .department(department)
                 .isActive(true)
                 .build();
-        categoryRepository.save(category);
 
-        // ===== CLEAR CACHE =====
-        categoryCacheService.evictAllPages();
+        categoryRepository.save(category);
 
         // ===== QUERY PROJECTION DETAIL =====
         CategoryProjection projection = categoryRepository.findDetailProjectionBySlug(slug)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         // ===== MAP TO DTO =====
-        CategoryDetailResponse response = CategoryMapper.mapToDetail(projection);
-
-        // ===== CACHE DETAIL =====
-        categoryCacheService.cacheCategoryBySlug(slug, response);
-
-        return response;
+        return CategoryMapper.mapToDetail(projection);
     }
 
     @Transactional
@@ -119,10 +109,6 @@ public class CategoryServiceImpl implements CategoryService {
         // ===== UPDATE FIELDS =====
         CategoryMapper.updateFromRequest(category, request);
 
-        // ===== CACHE INVALIDATION =====
-        categoryCacheService.evictCategoryBySlug(oldSlug);
-        categoryCacheService.evictAllPages();
-
         // ===== QUERY PROJECTION DETAIL =====
         CategoryProjection projection = categoryRepository.findDetailProjectionBySlug(category.getSlug())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -137,49 +123,33 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         categoryRepository.deleteById(id);
-
-        categoryCacheService.evictCategoryBySlug(category.getSlug());
-        categoryCacheService.evictAllPages();
     }
 
     @Override
     public CategoryDetailResponse findBySlug(String slug) {
-        return categoryCacheService.getCategoryBySlug(slug)
-                .orElseGet(() -> {
-                    // ===== QUERY DTO PROJECTION =====
-                    CategoryProjection projection = categoryRepository.findDetailProjectionBySlug(slug)
-                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-                    // ===== MAP PROJECTION TO DETAIL DTO =====
-                    CategoryDetailResponse response = CategoryMapper.mapToDetail(projection);
+        // ===== QUERY DTO PROJECTION =====
+        CategoryProjection projection = categoryRepository.findDetailProjectionBySlug(slug)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-                    // ===== LOAD DEPARTMENT SEPARATELY =====
-                    DepartmentResponse dept = getDepartment(projection.getId());
-                    response.setDepartment(dept);
+        // ===== MAP PROJECTION TO DETAIL DTO =====
+        CategoryDetailResponse response = CategoryMapper.mapToDetail(projection);
 
-                    // ===== CACHE DTO =====
-                    categoryCacheService.cacheCategoryBySlug(slug, response);
+        // ===== LOAD DEPARTMENT =====
+        DepartmentResponse dept = getDepartment(projection.getId());
+        response.setDepartment(dept);
 
-                    return response;
-                });
+        return response;
     }
 
     @Override
-    public PageResponse<CategorySummaryResponse> getAll(CategoryFilterRequest filter, PageRequestDto request) {
+    public PageResponse<CategorySummaryResponse> getAll(
+            CategoryFilterRequest filter,
+            PageRequestDto request
+    ) {
 
         int page = request.getPage();
         int size = request.getSize();
-        String sort = request.getSort();
-
-        String filterKey = buildFilterKey(filter);
-
-        // ===== CACHE CHECK =====
-        Optional<PageResponse<CategorySummaryResponse>> cached =
-                categoryCacheService.getCategoryPage(page, size, sort, filterKey);
-
-        if (cached.isPresent()) {
-            return cached.get();
-        }
 
         // ===== CREATE PAGEABLE =====
         Pageable pageable = PageableFactory.from(request, categorySortField);
@@ -200,7 +170,7 @@ public class CategoryServiceImpl implements CategoryService {
         Page<CategoryProjection> pageData =
                 categoryRepository.searchProjection(keyword, active, departmentId, pageable);
 
-        // ===== MAP PROJECTION TO DTO =====
+        // ===== MAP =====
         Page<CategorySummaryResponse> content = pageData.map(proj -> {
             CategorySummaryResponse dto = CategoryMapper.mapToSummary(proj);
 
@@ -210,44 +180,34 @@ public class CategoryServiceImpl implements CategoryService {
             return dto;
         });
 
-        PageResponse<CategorySummaryResponse> response = PageMapper.toResponse(content);
-
-        // ===== CACHE =====
-        categoryCacheService.cacheCategoryPage(
-                page,
-                size,
-                sort,
-                filterKey,
-                response
-        );
-
-        return response;
+        return PageMapper.toResponse(content);
     }
 
     @Override
-    public List<CategorySummaryResponse> getAllActive() {
-
+    public ActiveCategoryResponse getAllActive() {
         List<Category> categories = categoryRepository.findAllByIsActiveTrue();
 
-        return categories.stream()
+        List<CategorySummaryResponse> categoryDtos = categories.stream()
                 .map(category -> CategorySummaryResponse.builder()
                         .id(category.getId())
                         .name(category.getName())
+                        .active(category.isActive())
                         .build()
                 )
                 .toList();
+
+        return ActiveCategoryResponse.builder()
+                .activeCategories(categoryDtos)
+                .build();
     }
 
     private DepartmentResponse getDepartment(UUID cateId) {
         return departmentRepository.findDepartmentByCategoryId(cateId);
     }
 
-    private String buildFilterKey(CategoryFilterRequest filter) {
-        return String.format(
-                "keyword:%s|active:%s|departmentId:%s",
-                filter.getKeyword() == null ? "" : filter.getKeyword(),
-                filter.getActive() == null ? "" : filter.getActive(),
-                filter.getDepartmentId() == null ? "" : filter.getDepartmentId()
-        );
+    public String getSlugById(UUID id) {
+        return categoryRepository.findById(id)
+                .map(Category::getSlug)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }
