@@ -52,7 +52,7 @@ public class CategoryCacheService {
             int page, int size, String sort, String filterKey) {
 
         String key = CategoryCacheKeys.categoryPage(page, size, sort, filterKey);
-        return cacheService.get(key, (Class) PageResponse.class); // do generic erasure
+        return cacheService.get(key, (Class) PageResponse.class);
     }
 
     public void cacheCategoryPage(

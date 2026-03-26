@@ -58,22 +58,38 @@ public class RedisCacheService {
 
         ScanOptions options = ScanOptions.scanOptions()
                 .match(pattern)
-                .count(100)
+                .count(500)
                 .build();
 
-        Cursor<byte[]> cursor = Objects.requireNonNull(redisTemplate.getConnectionFactory())
-                .getConnection()
-                .scan(options);
+        var connection = Objects.requireNonNull(redisTemplate.getConnectionFactory())
+                .getConnection();
 
-        List<String> keys = new ArrayList<>();
+        int totalDeleted = 0;
 
-        cursor.forEachRemaining(key -> keys.add(new String(key)));
+        try (Cursor<byte[]> cursor = connection.scan(options)) {
 
-        if (!keys.isEmpty()) {
-            redisTemplate.delete(keys);
+            List<byte[]> batch = new ArrayList<>(500);
+
+            while (cursor.hasNext()) {
+                batch.add(cursor.next());
+
+                if (batch.size() >= 500) {
+                    connection.del(batch.toArray(new byte[0][]));
+                    totalDeleted += batch.size();
+                    batch.clear();
+                }
+            }
+
+            if (!batch.isEmpty()) {
+                connection.del(batch.toArray(new byte[0][]));
+                totalDeleted += batch.size();
+            }
+
+        } catch (Exception e) {
+            log.error("❌ Redis SCAN delete error", e);
         }
 
-        log.debug("🗑 Redis DELETE SCAN [{}] - {} keys", pattern, keys.size());
+        log.debug("🗑 Redis DELETE SCAN [{}] - {} keys", pattern, totalDeleted);
     }
 
     /* ================= (OPTIONAL - DEV ONLY) ================= */

@@ -54,4 +54,7 @@ public interface DepartmentRepository extends JpaRepository<Department, UUID> {
     DepartmentResponse findDepartmentByCategoryId(@Param("categoryId") UUID categoryId);
 
     boolean existsByNameAndIdNot(String name, UUID id);
+
+    @Query("SELECT d.id FROM Department d")
+    List<UUID> findAllIds();
 }

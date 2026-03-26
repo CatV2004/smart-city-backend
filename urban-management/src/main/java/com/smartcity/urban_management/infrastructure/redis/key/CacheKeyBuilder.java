@@ -28,4 +28,20 @@ public final class CacheKeyBuilder {
     public static String key(String prefix, String type) {
         return "%s:%s".formatted(prefix, type);
     }
+
+    public static String key(String prefix, String type, Object... parts) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix).append(":").append(type);
+
+        for (Object part : parts) {
+            sb.append(":").append(safePart(part));
+        }
+
+        return sb.toString();
+    }
+
+    private static String safePart(Object part) {
+        if (part == null) return "null";
+        return part.toString().trim().toLowerCase();
+    }
 }

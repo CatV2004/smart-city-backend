@@ -6,7 +6,6 @@ import com.smartcity.urban_management.modules.department.dto.office.DepartmentOf
 import com.smartcity.urban_management.modules.department.dto.office.DepartmentOfficeResponse;
 import com.smartcity.urban_management.modules.department.entity.Department;
 import com.smartcity.urban_management.modules.department.entity.DepartmentOffice;
-import com.smartcity.urban_management.modules.department.mapper.DepartmentOfficeMapper;
 import com.smartcity.urban_management.modules.department.pagination.DepartmentOfficeSortField;
 import com.smartcity.urban_management.modules.department.repository.DepartmentOfficeRepository;
 import com.smartcity.urban_management.modules.department.repository.DepartmentRepository;
@@ -28,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@Service
+@Service("departmentOfficeServiceImpl")
 @RequiredArgsConstructor
 @Transactional
 public class DepartmentOfficeServiceImpl implements DepartmentOfficeService {
@@ -37,7 +36,6 @@ public class DepartmentOfficeServiceImpl implements DepartmentOfficeService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final DepartmentOfficeSortField departmentOfficeSortField = new DepartmentOfficeSortField();
-
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override

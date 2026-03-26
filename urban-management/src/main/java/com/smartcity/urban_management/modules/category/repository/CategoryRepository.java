@@ -61,4 +61,8 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     @Query("SELECT c.slug FROM Category c WHERE c.department.id = :departmentId")
     List<String> findSlugsByDepartmentId(@Param("departmentId") UUID departmentId);
 
-    List<Category> findAllByIsActiveTrue();}
+    List<Category> findAllByIsActiveTrue();
+
+    @Query("SELECT c.id FROM Category c")
+    List<UUID> findAllIds();
+}

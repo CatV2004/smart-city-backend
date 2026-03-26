@@ -7,6 +7,12 @@ public enum ErrorCode {
     // ===== SYSTEM =====
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "SYS_500", "Internal server error"),
 
+    // ===== GOOGLE MAPS =====
+    GEOCODE_FAILED(HttpStatus.BAD_GATEWAY, "MAP_502_1", "Geocode failed"),
+    GEOCODE_ZERO_RESULTS(HttpStatus.NOT_FOUND, "MAP_404_1", "Address not found"),
+    GOOGLE_API_LIMIT(HttpStatus.TOO_MANY_REQUESTS, "MAP_429_1", "Google API quota exceeded"),
+    GOOGLE_API_DENIED(HttpStatus.FORBIDDEN, "MAP_403_1", "Google API request denied"),
+
     // ===== REQUEST =====
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "REQ_400", "Invalid request"),
 

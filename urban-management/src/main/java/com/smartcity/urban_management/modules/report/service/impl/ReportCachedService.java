@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.report.service.impl;
 
+import com.smartcity.urban_management.infrastructure.redis.cache.MapCacheService;
 import com.smartcity.urban_management.infrastructure.redis.cache.ReportCacheService;
 import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportAdminDetailResponse;
@@ -40,6 +41,7 @@ public class ReportCachedService implements ReportService {
     private final ReportServiceImpl delegate;
     private final ReportRepository reportRepository;
     private final ReportCacheService reportCacheService;
+    private final MapCacheService mapCacheService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
@@ -66,6 +68,7 @@ public class ReportCachedService implements ReportService {
         // ===== EVICT CACHE =====
         reportCacheService.evictAllReportPages();
         reportCacheService.evictUserReportPages(userId);
+        mapCacheService.evictAllMapData();
 
         return response;
     }
@@ -204,6 +207,7 @@ public class ReportCachedService implements ReportService {
         // ===== CACHE EVICITON =====
         reportCacheService.evictReport(reportId);
         reportCacheService.evictAllReportPages();
+        mapCacheService.evictAllMapData();
 
         // ===== RETURN CACHED DTO =====
         return getAdminDetail(reportId); // cached service sẽ tự check cache
@@ -221,6 +225,7 @@ public class ReportCachedService implements ReportService {
         // ===== CACHE EVICITON =====
         reportCacheService.evictReport(reportId);
         reportCacheService.evictAllReportPages();
+        mapCacheService.evictAllMapData();
 
         // ===== RETURN CACHED DTO =====
         return getStaffDetail(reportId);
@@ -249,6 +254,7 @@ public class ReportCachedService implements ReportService {
 
         reportCacheService.evictReport(reportId);
         reportCacheService.evictAllReportPages();
+        mapCacheService.evictAllMapData();
 
         if (report.getCreatedBy() != null) {
             UUID userId = report.getCreatedBy().getId();
@@ -288,6 +294,7 @@ public class ReportCachedService implements ReportService {
         // ===== CACHE EVICTION =====
         reportCacheService.evictReport(reportId);
         reportCacheService.evictAllReportPages();
+        mapCacheService.evictAllMapData();
 
         if (report.getCreatedBy() != null) {
             UUID userId = report.getCreatedBy().getId();
@@ -318,6 +325,7 @@ public class ReportCachedService implements ReportService {
         reportCacheService.evictReport(id);
         reportCacheService.evictAllReportPages();
         reportCacheService.evictUserReportPages(userId);
+        mapCacheService.evictAllMapData();
     }
 
     @Override
