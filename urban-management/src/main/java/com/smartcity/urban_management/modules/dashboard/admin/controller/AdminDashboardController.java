@@ -2,6 +2,7 @@ package com.smartcity.urban_management.modules.dashboard.admin.controller;
 
 import com.smartcity.urban_management.modules.dashboard.admin.dto.response.DashboardStatisticsResponse;
 import com.smartcity.urban_management.modules.dashboard.admin.dto.response.PriorityReportResponse;
+import com.smartcity.urban_management.modules.dashboard.admin.dto.response.ResolvedReportResponse;
 import com.smartcity.urban_management.modules.dashboard.admin.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,5 +34,15 @@ public class AdminDashboardController {
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "priority", "createdAt"));
         return ResponseEntity.ok(dashboardService.getPriorityReports(pageable));
+    }
+
+    @GetMapping("/resolved-reports")
+    public ResponseEntity<Page<ResolvedReportResponse>> getResolvedReports(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9999") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(dashboardService.getResolvedReports(pageable));
     }
 }

@@ -40,4 +40,12 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic reportStatusChanged() {
+        return TopicBuilder.name(KafkaTopics.REPORT_STATUS_CHANGED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

@@ -1,6 +1,5 @@
 package com.smartcity.urban_management.modules.dashboard.admin.dto.response;
 
-import com.smartcity.urban_management.modules.report.entity.Priority;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.task.entity.TaskStatus;
 import lombok.*;
@@ -13,7 +12,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResolvedReportListResponse {
+public class ResolvedReportResponse {
 
     private UUID reportId;
     private String title;

@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@Service("departmentOfficeServiceImpl")
+@Service
 @RequiredArgsConstructor
 @Transactional
 public class DepartmentOfficeServiceImpl implements DepartmentOfficeService {

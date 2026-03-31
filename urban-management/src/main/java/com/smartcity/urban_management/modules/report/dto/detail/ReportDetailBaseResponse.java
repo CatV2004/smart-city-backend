@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.report.dto.detail;
 
+import com.smartcity.urban_management.modules.report.dto.ReportResultDto;
 import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import lombok.AllArgsConstructor;
@@ -34,4 +35,6 @@ public class ReportDetailBaseResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private ReportResultDto result;
 }

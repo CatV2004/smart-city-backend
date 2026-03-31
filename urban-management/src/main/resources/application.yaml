@@ -59,6 +59,9 @@ google:
   maps:
     api-key: AIzaSyADrSk_OCXk_gyXUnfsnmX-kg0d_d6VTR8
 
+mapbox:
+  access-token: pk.eyJ1IjoiY2F0djIwMDQiLCJhIjoiY21uNXhwMGthMDk1MDJwczZzY3NzMHhpNCJ9.9Bkg3yxoY5is2npfXq6dOA
+
 app:
   upload:
     max-file-size: 100MB

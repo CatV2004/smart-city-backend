@@ -6,6 +6,7 @@ public final class KafkaTopics {
     public static final String NOTIFICATION_SEND = "notification.send";
     public static final String REPORT_ATTACHMENTS_ADDED = "report.attachments.added";
     public static final String REPORT_AI_ANALYZED = "report-ai-analyzed";
+    public static final String REPORT_STATUS_CHANGED = "report.status.changed";
 
     private KafkaTopics() {}
 }

@@ -2,6 +2,7 @@ package com.smartcity.urban_management.modules.department.service.impl;
 
 import com.smartcity.urban_management.infrastructure.redis.cache.CategoryCacheService;
 import com.smartcity.urban_management.infrastructure.redis.cache.DepartmentCacheService;
+import com.smartcity.urban_management.infrastructure.redis.cache.UserCacheService;
 import com.smartcity.urban_management.modules.department.dto.department.*;
 import com.smartcity.urban_management.modules.department.service.DepartmentService;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
@@ -21,6 +22,7 @@ public class DepartmentCachedService implements DepartmentService {
 
     private final DepartmentCacheService cache;
     private final CategoryCacheService categoryCacheService;
+    private final UserCacheService userCacheService;
     private final DepartmentServiceImpl delegate;
 
     @Override
@@ -88,7 +90,6 @@ public class DepartmentCachedService implements DepartmentService {
 
     @Override
     public List<DepartmentResponse> getAllActiveByCodes(List<String> codes) {
-        // Nếu muốn cache list active cũng có thể thêm, hoặc giữ query DB mỗi lần
         return delegate.getAllActiveByCodes(codes);
     }
 
@@ -101,6 +102,7 @@ public class DepartmentCachedService implements DepartmentService {
         // 2. Evict cache
         categoryCacheService.evictAllPages();
         cache.evictDepartmentById(departmentId);
+        userCacheService.evictAllUserPages();
         cache.evictDepartmentList();
         cache.evictAllPages();
     }

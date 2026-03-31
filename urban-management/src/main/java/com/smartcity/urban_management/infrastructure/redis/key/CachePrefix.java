@@ -7,6 +7,7 @@ public enum CachePrefix {
     DEPARTMENT("department"),
     USER("user"),
     MAP("map"),
+    TASK("task"),
     OFFICE("office");
 
     private final String value;

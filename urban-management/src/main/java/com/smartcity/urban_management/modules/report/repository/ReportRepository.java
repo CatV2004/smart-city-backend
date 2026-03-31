@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.modules.report.repository;
 
+import com.smartcity.urban_management.modules.dashboard.admin.dto.response.ResolvedReportProjection;
 import com.smartcity.urban_management.modules.location.dto.projection.ReportMapProjection;
 import com.smartcity.urban_management.modules.report.dto.AttachmentProjection;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportDetailProjection;
@@ -170,29 +171,27 @@ public interface ReportRepository extends
 
     @Query("""
                 SELECT
-                    r.id as id,
-                    r.title as title,
-                    r.description as description,
-                    uc.name as userCategoryName,
-                    ac.name as aiCategoryName,
-                    fc.name as finalCategoryName,
-                    r.aiConfidence as aiConfidence,
-                    r.priority as priority,
-                    r.status as status,
-                    cast(function('ST_Y', r.location) as double) as latitude,
-                    cast(function('ST_X', r.location) as double) as longitude,
-                    r.address as address,
-                    u.fullName as createdByName,
-                    u.id as createdByUserId,
-                    r.createdAt as createdAt
+                    r.id AS reportId,
+                    r.title AS title,
+                    r.status AS status,
+                    r.createdAt AS createdAt,
+            
+                    t.id AS taskId,
+                    t.status AS taskStatus,
+                    u.fullName AS assignedUserName,
+                    t.completedAt AS completedAt
+            
                 FROM Report r
-                JOIN r.createdBy u
-                LEFT JOIN r.userCategory uc
-                LEFT JOIN r.aiCategory ac
-                LEFT JOIN r.finalCategory fc
-                WHERE r.id = :id AND r.deletedAt IS NULL
+                LEFT JOIN Task t ON t.report.id = r.id AND t.deletedAt IS NULL
+                LEFT JOIN t.assignedUser u
+            
+                WHERE r.status = :status
+                  AND r.deletedAt IS NULL
             """)
-    Optional<ReportSummaryProjection> findSummaryProjectionById(UUID id);
+    Page<ResolvedReportProjection> findResolvedReports(
+            @Param("status") ReportStatus status,
+            Pageable pageable
+    );
 
     Optional<Report> findByIdAndDeletedAtIsNull(UUID id);
 
@@ -224,28 +223,6 @@ public interface ReportRepository extends
     List<Report> findTop5ByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(ReportStatus status);
 
     List<Report> findTop5ByStatusInAndDeletedAtIsNullOrderByUpdatedAtDesc(List<ReportStatus> statuses);
-
-    @Query(value = """
-                SELECT
-                    r.id,
-                    r.title,
-                    r.description,
-                    r.status,
-                    r.priority,
-                    r.address,
-                    r.ai_confidence as aiConfidence,
-                    COALESCE(fc.name, ac.name, uc.name) as categoryName,
-                    ST_Y(r.location) as lat,
-                    ST_X(r.location) as lng,
-                    r.created_at as createdAt,
-                    r.updated_at as updatedAt
-                FROM reports r
-                LEFT JOIN categories fc ON r.final_category_id = fc.id
-                LEFT JOIN categories ac ON r.ai_category_id = ac.id
-                LEFT JOIN categories uc ON r.user_category_id = uc.id
-                WHERE r.deleted_at IS NULL
-            """, nativeQuery = true)
-    List<ReportMapProjection> findAllForMap();
 
     @Query(value = """
                 SELECT
@@ -293,6 +270,33 @@ public interface ReportRepository extends
             @Param("keyword") String keyword
     );
 
+    @Query("""
+                SELECT DISTINCT
+                    r.id as id,
+                    r.title as title,
+                    r.description as description,
+                    r.status as status,
+                    r.priority as priority,
+                    r.address as address,
+                    fc.name as categoryName,
+                    r.aiConfidence as aiConfidence,
+                    ST_Y(r.location) as lat,
+                    ST_X(r.location) as lng,
+                    r.createdAt as createdAt,
+                    r.updatedAt as updatedAt
+                FROM Task t
+                JOIN t.report r
+                LEFT JOIN r.finalCategory fc
+                WHERE t.departmentOffice.id = :officeId
+                  AND r.status IN :statuses
+                  AND t.deletedAt IS NULL
+                  AND r.deletedAt IS NULL
+            """)
+    List<ReportMapProjection> findReportsByOfficeAndStatuses(
+            UUID officeId,
+            List<String> statuses
+    );
+
     @Query(value = """
                 SELECT
                     a.report_id as reportId,
@@ -301,4 +305,13 @@ public interface ReportRepository extends
                 WHERE a.report_id IN :reportIds
             """, nativeQuery = true)
     List<AttachmentProjection> findAttachmentsByReportIds(List<UUID> reportIds);
+
+    @Query("""
+                SELECT d.id
+                FROM Report r
+                JOIN r.finalCategory c
+                JOIN c.department d
+                WHERE r.id = :reportId
+            """)
+    UUID findDepartmentIdByReportId(@Param("reportId") UUID reportId);
 }

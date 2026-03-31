@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,12 @@ public class MapCacheService {
         return MapCacheKeys.mapData() + "::" + hashFilter(filter);
     }
 
+    private String buildKey(UUID officeId, MapFilterRequest filter) {
+        return MapCacheKeys.mapData()
+                + "::office:" + officeId
+                + "::" + hashFilter(filter);
+    }
+
     private String hashFilter(MapFilterRequest filter) {
         try {
             return java.util.Base64.getEncoder().encodeToString(
@@ -32,6 +39,7 @@ public class MapCacheService {
         }
     }
 
+    // ================= MAP DATA (ADMIN) =================
     public Optional<MapDataResponse> getMapData(MapFilterRequest filter) {
         return cacheService.get(buildKey(filter), MapDataResponse.class);
     }
@@ -42,5 +50,14 @@ public class MapCacheService {
 
     public void evictAllMapData() {
         cacheService.deleteByPatternScan(MapCacheKeys.mapData() + "::" + "*");
+    }
+
+    // ================= TASK MAP DATA (STAFF) =================
+    public Optional<MapDataResponse> getTaskMapData(UUID officeId, MapFilterRequest filter) {
+        return cacheService.get(buildKey(officeId, filter), MapDataResponse.class);
+    }
+
+    public void cacheTaskMapData(UUID officeId, MapFilterRequest filter, MapDataResponse data) {
+        cacheService.set(buildKey(officeId, filter), data, MAP_TTL);
     }
 }

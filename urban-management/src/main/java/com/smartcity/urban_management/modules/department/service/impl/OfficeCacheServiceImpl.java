@@ -24,8 +24,7 @@ public class OfficeCacheServiceImpl implements DepartmentOfficeService {
     private final OfficeCacheService cacheService;
     private final MapCacheService mapCacheService;
 
-    private final @Qualifier("departmentOfficeServiceImpl")
-    DepartmentOfficeService delegate;
+    private final DepartmentOfficeService delegate;
 
     @Override
     public CreateOfficeResponse create(DepartmentOfficeRequest request) {

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface DepartmentOfficeRepository extends JpaRepository<DepartmentOffice, UUID> {
@@ -46,20 +47,6 @@ public interface DepartmentOfficeRepository extends JpaRepository<DepartmentOffi
                     d.name as departmentName,
                     ST_Y(o.location) as lat,
                     ST_X(o.location) as lng
-                FROM department_offices o
-                JOIN departments d ON o.department_id = d.id
-                WHERE o.is_active = true
-            """, nativeQuery = true)
-    List<OfficeMapProjection> findAllForMap();
-
-    @Query(value = """
-                SELECT
-                    o.id,
-                    o.name,
-                    o.address,
-                    d.name as departmentName,
-                    ST_Y(o.location) as lat,
-                    ST_X(o.location) as lng
             
                 FROM department_offices o
                 JOIN departments d ON o.department_id = d.id
@@ -80,6 +67,38 @@ public interface DepartmentOfficeRepository extends JpaRepository<DepartmentOffi
     List<OfficeMapProjection> findAllForMapFiltered(
             @Param("departmentIds") List<UUID> departmentIds,
             @Param("keyword") String keyword
+    );
+
+    @Query("""
+                SELECT o.id as id,
+                       o.name as name,
+                       o.address as address,
+                       ST_Y(o.location) as lat,
+                        ST_X(o.location) as lng,
+                       d.name as departmentName
+                FROM User u
+                JOIN u.office o
+                JOIN o.department d
+                WHERE u.id = :userId
+            """)
+    Optional<OfficeMapProjection> findOfficeByUserIdForMap(UUID userId);
+
+    @Query(value = """
+            SELECT o.*
+            FROM department_offices o
+            WHERE o.department_id = :departmentId
+              AND o.is_active = true
+            ORDER BY ST_DistanceSphere(
+                o.location,
+                ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)
+            )
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<DepartmentOffice> findNearestOffices(
+            @Param("departmentId") UUID departmentId,
+            @Param("lat") double lat,
+            @Param("lng") double lng,
+            @Param("limit") int limit
     );
 
 }

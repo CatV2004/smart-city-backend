@@ -5,18 +5,18 @@ import com.smartcity.urban_management.infrastructure.redis.cache.ReportCacheServ
 import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportAdminDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportCitizenDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.detail.ReportStaffDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportAdminSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportCitizenSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.Report;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
-import com.smartcity.urban_management.modules.report.event.ReportStatusChangedEvent;
+//import com.smartcity.urban_management.modules.report.event.ReportStatusChangedEvent;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.modules.user.entity.RoleName;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
 import com.smartcity.urban_management.shared.messaging.event.ReportCreatedEvent;
+import com.smartcity.urban_management.shared.messaging.event.ReportStatusChangedEvent;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 import lombok.RequiredArgsConstructor;
@@ -163,22 +163,6 @@ public class ReportCachedService implements ReportService {
     }
 
     @Override
-    public ReportStaffDetailResponse getStaffDetail(UUID id) {
-        Optional<ReportStaffDetailResponse> cached =
-                reportCacheService.getReport(id, RoleName.STAFF.name(), ReportStaffDetailResponse.class);
-
-        if (cached.isPresent()) {
-            return cached.get();
-        }
-
-        ReportStaffDetailResponse dto = delegate.getStaffDetail(id);
-
-        reportCacheService.cacheReport(id, RoleName.STAFF.name(), dto);
-
-        return dto;
-    }
-
-    @Override
     public ReportCitizenDetailResponse getCitizenDetail(UUID id) {
         Optional<ReportCitizenDetailResponse> cached =
                 reportCacheService.getReport(id, RoleName.CITIZEN.name(), ReportCitizenDetailResponse.class);
@@ -201,8 +185,19 @@ public class ReportCachedService implements ReportService {
             UpdateReportStatusRequest request,
             UUID adminId
     ) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
+
         // ===== DELEGATE: update entity =====
-        delegate.adminUpdateStatus(reportId, request, adminId);
+        delegate.adminUpdateStatus(report, request, adminId);
+
+        // ===== UPDATE STATUS + HISTORY =====
+        updateStatus(
+                report,
+                request.getStatus(),
+                adminId.toString(),
+                request.getNote()
+        );
 
         // ===== CACHE EVICITON =====
         reportCacheService.evictReport(reportId);
@@ -210,25 +205,7 @@ public class ReportCachedService implements ReportService {
         mapCacheService.evictAllMapData();
 
         // ===== RETURN CACHED DTO =====
-        return getAdminDetail(reportId); // cached service sẽ tự check cache
-    }
-
-    @Override
-    @Transactional
-    public ReportStaffDetailResponse staffUpdateStatus(
-            UUID reportId,
-            UpdateReportStatusRequest request
-    ) {
-        // ===== DELEGATE: update entity =====
-        delegate.staffUpdateStatus(reportId, request);
-
-        // ===== CACHE EVICITON =====
-        reportCacheService.evictReport(reportId);
-        reportCacheService.evictAllReportPages();
-        mapCacheService.evictAllMapData();
-
-        // ===== RETURN CACHED DTO =====
-        return getStaffDetail(reportId);
+        return getAdminDetail(reportId);
     }
 
     @Override
@@ -245,7 +222,8 @@ public class ReportCachedService implements ReportService {
                 new ReportStatusChangedEvent(
                         report.getId(),
                         report.getStatus(),
-                        newStatus
+                        newStatus,
+                        changedBy
                 )
         );
 
@@ -274,21 +252,15 @@ public class ReportCachedService implements ReportService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
 
-        ReportStatus oldStatus = report.getStatus();
-
         // ===== DELEGATE =====
         delegate.updateFinalCategory(report, request, adminId);
 
-        // ===== GET NEW STATUS =====
-        ReportStatus newStatus = report.getStatus();
-
-        // ===== PUBLISH EVENT =====
-        applicationEventPublisher.publishEvent(
-                new ReportStatusChangedEvent(
-                        reportId,
-                        oldStatus,
-                        newStatus
-                )
+        // ===== UPDATE STATUS =====
+        updateStatus(
+                report,
+                ReportStatus.VERIFIED,
+                adminId.toString(),
+                request.getNote()
         );
 
         // ===== CACHE EVICTION =====

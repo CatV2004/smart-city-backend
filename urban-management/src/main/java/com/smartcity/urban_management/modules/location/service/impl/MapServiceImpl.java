@@ -8,17 +8,21 @@ import com.smartcity.urban_management.modules.location.dto.MapFeatureResponse;
 import com.smartcity.urban_management.modules.location.dto.MapFilterRequest;
 import com.smartcity.urban_management.modules.location.dto.projection.ReportMapProjection;
 import com.smartcity.urban_management.modules.location.dto.projection.OfficeMapProjection;
+import com.smartcity.urban_management.modules.location.dto.projection.TaskMapProjection;
 import com.smartcity.urban_management.modules.location.service.MapService;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 
+import com.smartcity.urban_management.modules.task.entity.TaskStatus;
+import com.smartcity.urban_management.modules.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Service("mapServiceImpl")
+@Service
 @RequiredArgsConstructor
 public class MapServiceImpl implements MapService {
 
@@ -26,6 +30,7 @@ public class MapServiceImpl implements MapService {
     private final CategoryRepository categoryRepository;
     private final DepartmentRepository departmentRepository;
     private final DepartmentOfficeRepository officeRepository;
+    private final TaskRepository taskRepository;
 
     @Override
     public MapDataResponse getMapData(MapFilterRequest filter) {
@@ -51,12 +56,31 @@ public class MapServiceImpl implements MapService {
         return new MapDataResponse("FeatureCollection", features);
     }
 
+    public MapDataResponse getTaskMapDataForStaff(MapFilterRequest filter, UUID userId) {
+        List<MapFeatureResponse> features = new ArrayList<>();
+        List<String> statuses = normalizeTaskStatuses(filter);
+        String keyword = normalizeKeyword(filter);
+
+        features.addAll(
+                buildTaskFeaturesByUser(userId, statuses, keyword)
+        );
+        officeRepository.findOfficeByUserIdForMap(userId)
+                .ifPresent(o -> features.add(buildOfficeFeature(o)));
+        return new MapDataResponse("FeatureCollection", features);
+    }
+
     // ================= NORMALIZE =================
 
     private List<String> normalizeStatuses(MapFilterRequest filter) {
         return (filter.getStatuses() == null || filter.getStatuses().isEmpty())
                 ? Arrays.stream(ReportStatus.values()).map(Enum::name).toList()
                 : filter.getStatuses().stream().map(Enum::name).toList();
+    }
+
+    private List<String> normalizeTaskStatuses(MapFilterRequest filter) {
+        return (filter.getTaskStatuses() == null || filter.getTaskStatuses().isEmpty())
+                ? Arrays.stream(TaskStatus.values()).map(Enum::name).toList()
+                : filter.getTaskStatuses().stream().map(Enum::name).toList();
     }
 
     private List<UUID> normalizeCategoryIds(MapFilterRequest filter) {
@@ -88,7 +112,8 @@ public class MapServiceImpl implements MapService {
         List<ReportMapProjection> reports =
                 reportRepository.findAllForMapFiltered(statuses, categoryIds, keyword);
 
-        Map<UUID, List<String>> attachmentMap = buildAttachmentMap(reports);
+        Map<UUID, List<String>> attachmentMap =
+                buildAttachmentMap(reports, ReportMapProjection::getId);
 
         return reports.stream()
                 .map(r -> new MapFeatureResponse(
@@ -99,10 +124,34 @@ public class MapServiceImpl implements MapService {
                 .toList();
     }
 
-    private Map<UUID, List<String>> buildAttachmentMap(List<ReportMapProjection> reports) {
+    private List<MapFeatureResponse> buildTaskFeaturesByUser(
+            UUID userId,
+            List<String> statuses,
+            String keyword
+    ) {
 
-        List<UUID> reportIds = reports.stream()
-                .map(ReportMapProjection::getId)
+        List<TaskMapProjection> tasks =
+                taskRepository.findAllForMapByUser(userId, statuses, keyword);
+
+        Map<UUID, List<String>> attachmentMap =
+                buildAttachmentMap(tasks, TaskMapProjection::getReportId);
+
+        return tasks.stream()
+                .map(t -> new MapFeatureResponse(
+                        "Feature",
+                        buildTaskProps(t, attachmentMap),
+                        buildGeometry(t.getReportLng(), t.getReportLat())
+                ))
+                .toList();
+    }
+
+    private <T> Map<UUID, List<String>> buildAttachmentMap(
+            List<T> items,
+            Function<T, UUID> reportIdExtractor
+    ) {
+
+        List<UUID> reportIds = items.stream()
+                .map(reportIdExtractor)
                 .toList();
 
         if (reportIds.isEmpty()) return Map.of();
@@ -137,6 +186,27 @@ public class MapServiceImpl implements MapService {
         return props;
     }
 
+    private Map<String, Object> buildTaskProps(
+            TaskMapProjection t,
+            Map<UUID, List<String>> attachmentMap
+    ) {
+        Map<String, Object> props = new HashMap<>();
+
+        props.put("type", "task");
+        props.put("id", t.getId());
+        props.put("assignedUserName", t.getAssignedUserName());
+        props.put("status", t.getStatus());
+        props.put("reportId", t.getReportId());
+        props.put("reportTitle", t.getReportTitle());
+        props.put("reportDescription", t.getReportDescription());
+        props.put("reportAddress", t.getReportAddress());
+        props.put("reportImages", attachmentMap.getOrDefault(t.getReportId(), List.of()));
+        props.put("assignedAt", t.getAssignedAt());
+        props.put("completedAt", t.getCompletedAt());
+        props.put("startedAt", t.getStartedAt());
+        return props;
+    }
+
     // ================= OFFICE =================
 
     private List<MapFeatureResponse> buildOfficeFeatures(
@@ -154,6 +224,14 @@ public class MapServiceImpl implements MapService {
                         buildGeometry(o.getLng(), o.getLat())
                 ))
                 .toList();
+    }
+
+    private MapFeatureResponse buildOfficeFeature(OfficeMapProjection o) {
+        return new MapFeatureResponse(
+                "Feature",
+                buildOfficeProps(o),
+                buildGeometry(o.getLng(), o.getLat())
+        );
     }
 
     private Map<String, Object> buildOfficeProps(OfficeMapProjection o) {

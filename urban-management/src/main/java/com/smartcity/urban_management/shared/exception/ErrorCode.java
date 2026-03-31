@@ -7,12 +7,6 @@ public enum ErrorCode {
     // ===== SYSTEM =====
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "SYS_500", "Internal server error"),
 
-    // ===== GOOGLE MAPS =====
-    GEOCODE_FAILED(HttpStatus.BAD_GATEWAY, "MAP_502_1", "Geocode failed"),
-    GEOCODE_ZERO_RESULTS(HttpStatus.NOT_FOUND, "MAP_404_1", "Address not found"),
-    GOOGLE_API_LIMIT(HttpStatus.TOO_MANY_REQUESTS, "MAP_429_1", "Google API quota exceeded"),
-    GOOGLE_API_DENIED(HttpStatus.FORBIDDEN, "MAP_403_1", "Google API request denied"),
-
     // ===== REQUEST =====
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "REQ_400", "Invalid request"),
 
@@ -69,7 +63,25 @@ public enum ErrorCode {
     USER_ALREADY_IN_OFFICE(HttpStatus.BAD_REQUEST, "OFFICE_400", "User already in office"),
     OFFICE_NOT_FOUND(HttpStatus.NOT_FOUND, "OFFICE_404", "Office not found"),
     OFFICE_REQUIRED(HttpStatus.BAD_REQUEST, "OFFICE_401", "Office is required for this role"),
-    OFFICE_NOT_BELONG_TO_DEPARTMENT(HttpStatus.BAD_REQUEST, "OFFICE_402", "Office does not belong to the selected department");
+    OFFICE_NOT_BELONG_TO_DEPARTMENT(HttpStatus.BAD_REQUEST, "OFFICE_402", "Office does not belong to the selected department"),
+
+    // ===== TASK =====
+    TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "TASK_404", "Task not found"),
+    TASK_INVALID_STATUS(HttpStatus.BAD_REQUEST, "TASK_400", "Task must be ASSIGNED to start"),
+    TASK_NOTE_REQUIRED(HttpStatus.BAD_REQUEST, "TASK_400_0", "Task note is required"),
+    TASK_ALREADY_CLAIMED(HttpStatus.BAD_REQUEST, "TASK_400_8", "Task is already claimed by another user"),
+    TASK_NOT_CLAIMED_BY_USER(HttpStatus.FORBIDDEN, "TASK_403_0", "You are not the assigned user of this task"),
+    TASK_ALREADY_ASSIGNED(HttpStatus.BAD_REQUEST, "TASK_400_1", "Task is already assigned"),
+    TASK_NOT_ASSIGNED(HttpStatus.BAD_REQUEST, "TASK_400_2", "Task is not assigned"),
+    TASK_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "TASK_400_3", "Task already started"),
+    TASK_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "TASK_400_4", "Task is not in progress"),
+    TASK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "TASK_400_5", "Task already completed"),
+    TASK_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "TASK_400_6", "Task already cancelled"),
+    INVALID_TASK_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "TASK_400_7", "Invalid task status transition"),
+
+    // ===== TASK PERMISSION =====
+    TASK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "TASK_403_1", "You cannot access this task"),
+    TASK_NOT_IN_SAME_OFFICE(HttpStatus.FORBIDDEN, "TASK_403_2", "Task does not belong to your office");
 
     private final HttpStatus status;
     private final String code;

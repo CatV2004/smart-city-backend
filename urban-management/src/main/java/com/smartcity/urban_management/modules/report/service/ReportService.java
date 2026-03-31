@@ -3,7 +3,6 @@ package com.smartcity.urban_management.modules.report.service;
 import com.smartcity.urban_management.modules.report.dto.*;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportAdminDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportCitizenDetailResponse;
-import com.smartcity.urban_management.modules.report.dto.detail.ReportStaffDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportAdminSummaryResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.ReportCitizenSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.Report;
@@ -21,8 +20,6 @@ public interface ReportService {
 
     ReportAdminDetailResponse getAdminDetail(UUID id);
 
-    ReportStaffDetailResponse getStaffDetail(UUID id);
-
     ReportCitizenDetailResponse getCitizenDetail(UUID id);
 
     void updateStatus(Report report, ReportStatus newStatus, String changedBy, String note);
@@ -30,8 +27,6 @@ public interface ReportService {
     void updateFinalCategory(UUID reportId, UpdateFinalCategoryRequest finalCateRequest, UUID adminId);
 
     ReportAdminDetailResponse adminUpdateStatus(UUID reportId, UpdateReportStatusRequest request, UUID adminId);
-
-    ReportStaffDetailResponse staffUpdateStatus(UUID reportId, UpdateReportStatusRequest request);
 
     void softDeleteReport(UUID reportId, UUID userId);
 

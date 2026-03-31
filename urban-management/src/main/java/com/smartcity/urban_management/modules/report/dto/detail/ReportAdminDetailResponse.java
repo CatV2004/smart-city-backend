@@ -2,6 +2,7 @@ package com.smartcity.urban_management.modules.report.dto.detail;
 
 import com.smartcity.urban_management.modules.report.entity.Priority;
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
+import com.smartcity.urban_management.modules.task.dto.TaskSummaryResponse;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -25,4 +26,6 @@ public class ReportAdminDetailResponse extends ReportDetailBaseResponse {
 
     private Priority priority;
     private ReportStatus status;
+
+    private TaskSummaryResponse task;
 }

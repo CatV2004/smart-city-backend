@@ -1,5 +1,6 @@
 package com.smartcity.urban_management.security.user;
 
+import com.smartcity.urban_management.modules.user.entity.RoleName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,6 +17,11 @@ public class CustomUserDetails implements UserDetails {
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
+
+    public boolean hasRole(String role) {
+        return authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

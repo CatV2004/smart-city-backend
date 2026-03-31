@@ -106,7 +106,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                 LEFT JOIN u.role r
                 LEFT JOIN u.department d
                 WHERE
-                    (:keyword IS NULL OR 
+                    (:keyword IS NULL OR
                         LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')) OR
                         LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%'))
                     )
@@ -123,5 +123,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     );
 
     long countByDepartment_IdAndDeletedAtIsNull(UUID departmentId);
-    long countByOffice_IdAndDeletedAtIsNull(UUID officeId);
+
+    @Query("""
+                SELECT u.office.id
+                FROM User u
+                WHERE u.id = :userId
+            """)
+    UUID findDepartmentOfficeIdByUserId(@Param("userId") UUID userId);
+
+    boolean existsByIdAndOfficeId(UUID userId, UUID officeId);
 }

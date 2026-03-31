@@ -18,6 +18,13 @@ import com.smartcity.urban_management.modules.report.repository.AttachmentReposi
 import com.smartcity.urban_management.modules.report.repository.ReportRepository;
 import com.smartcity.urban_management.modules.report.service.ReportService;
 import com.smartcity.urban_management.modules.report.service.ReportStatusHistoryService;
+import com.smartcity.urban_management.modules.task.dto.TaskSummaryResponse;
+import com.smartcity.urban_management.modules.task.entity.Task;
+import com.smartcity.urban_management.modules.task.entity.TaskEvidence;
+import com.smartcity.urban_management.modules.task.mapper.TaskResultMapper;
+import com.smartcity.urban_management.modules.task.mapper.TaskSummaryMapper;
+import com.smartcity.urban_management.modules.task.repository.TaskEvidenceRepository;
+import com.smartcity.urban_management.modules.task.repository.TaskRepository;
 import com.smartcity.urban_management.modules.user.entity.User;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
@@ -49,9 +56,10 @@ public class ReportServiceImpl implements ReportService {
     private final CategoryRepository categoryRepository;
     private final AttachmentRepository attachmentRepository;
     private final EntityManager entityManager;
-    private final ReportCacheService reportCacheService;
     private final ReportSortField reportSortField = new ReportSortField();
     private final ReportStatusHistoryService historyService;
+    private final TaskRepository taskRepository;
+    private final TaskEvidenceRepository evidenceRepository;
 
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -169,18 +177,22 @@ public class ReportServiceImpl implements ReportService {
     public ReportAdminDetailResponse getAdminDetail(UUID id) {
         ReportDetailProjection projection = getReportProjection(id);
 
-        ReportAdminDetailResponse dto = ReportDetailMapper.toAdmin(projection);
-        dto.setAttachments(getAttachments(id));
+        Task task = taskRepository.findByReportId(id).orElse(null);
 
-        return dto;
-    }
+        List<TaskEvidence> evidences = List.of();
+        if (task != null) {
+            evidences = evidenceRepository.findByTaskId(task.getId());
+        }
 
-    @Transactional
-    @Override
-    public ReportStaffDetailResponse getStaffDetail(UUID id) {
-        ReportDetailProjection projection = getReportProjection(id);
+        TaskSummaryResponse taskSummary =
+                TaskSummaryMapper.toSummary(task);
 
-        ReportStaffDetailResponse dto = ReportDetailMapper.toStaff(projection);
+        ReportResultDto result =
+                TaskResultMapper.toResult(task, evidences);
+
+        ReportAdminDetailResponse dto =
+                ReportDetailMapper.toAdmin(projection, result, taskSummary);
+
         dto.setAttachments(getAttachments(id));
 
         return dto;
@@ -190,8 +202,16 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportCitizenDetailResponse getCitizenDetail(UUID id) {
         ReportDetailProjection projection = getReportProjection(id);
+        Task task = taskRepository.findByReportId(id).orElse(null);
 
-        ReportCitizenDetailResponse dto = ReportDetailMapper.toCitizen(projection);
+        List<TaskEvidence> evidences = List.of();
+        if (task != null) {
+            evidences = evidenceRepository.findByTaskId(task.getId());
+        }
+
+        ReportResultDto result = TaskResultMapper.toResult(task, evidences);
+
+        ReportCitizenDetailResponse dto = ReportDetailMapper.toCitizen(projection, result);
         dto.setAttachments(getAttachments(id));
 
         return dto;
@@ -208,39 +228,22 @@ public class ReportServiceImpl implements ReportService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
 
-        // ===== UPDATE STATUS + HISTORY =====
-        updateStatus(
-                report,
-                request.getStatus(),
-                adminId.toString(),
-                request.getNote()
-        );
-
         // ===== SET APPROVED BY =====
         User adminRef = entityManager.getReference(User.class, adminId);
         report.setApprovedBy(adminRef);
 
-        // ===== CACHE EVICTION =====
-        reportCacheService.evictReport(reportId);
-        reportCacheService.evictAllReportPages();
-
         return getAdminDetail(reportId);
     }
 
-    @Override
-    public ReportStaffDetailResponse staffUpdateStatus(
-            UUID reportId,
-            UpdateReportStatusRequest request
+    @Transactional
+    public void adminUpdateStatus(
+            Report report,
+            UpdateReportStatusRequest request,
+            UUID adminId
     ) {
-        // ===== UPDATE ENTITY =====
-        updateStatusInternal(reportId, request.getStatus());
-
-        // ===== CACHE EVICTION =====
-        reportCacheService.evictReport(reportId);
-        reportCacheService.evictAllReportPages();
-
-        // ===== RETURN CACHED DTO =====
-        return getStaffDetail(reportId);
+        // ===== SET APPROVED BY =====
+        User adminRef = entityManager.getReference(User.class, adminId);
+        report.setApprovedBy(adminRef);
     }
 
     @Override
@@ -418,14 +421,6 @@ public class ReportServiceImpl implements ReportService {
         }
 
         report.setFinalCategory(finalCategory);
-
-        // reuse method
-        updateStatus(
-                report,
-                ReportStatus.VERIFIED,
-                adminId.toString(),
-                request.getNote()
-        );
 
         report.setApprovedBy(entityManager.getReference(User.class, adminId));
     }

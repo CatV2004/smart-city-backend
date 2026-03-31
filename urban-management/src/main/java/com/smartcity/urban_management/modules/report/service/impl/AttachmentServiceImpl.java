@@ -31,7 +31,6 @@ public class AttachmentServiceImpl implements AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
     private final ReportRepository reportRepository;
-    private final AttachmentMapper mapper;
     private final FileStorageService storageService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -52,7 +51,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return mapper.toResponse(
+        return AttachmentMapper.toResponse(
                 attachmentRepository.save(attachment)
         );
     }
@@ -61,7 +60,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     public List<AttachmentSummaryResponse> findByReport(UUID reportId) {
         return attachmentRepository.findByReportId(reportId)
                 .stream()
-                .map(mapper::toResponse)
+                .map(AttachmentMapper::toResponse)
                 .toList();
     }
 
@@ -115,7 +114,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         );
 
         return saved.stream()
-                .map(mapper::toResponse)
+                .map(AttachmentMapper::toResponse)
                 .toList();
     }
 }

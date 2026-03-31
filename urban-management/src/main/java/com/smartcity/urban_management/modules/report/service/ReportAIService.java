@@ -145,6 +145,7 @@ public class ReportAIService {
         // =========================
         // SAVE AI DATA FIRST
         // =========================
+        System.out.println("report.saveds: " + report.getAiConfidence() + " | " + report.getAiCategory());
         reportRepository.save(report);
 
         // =========================

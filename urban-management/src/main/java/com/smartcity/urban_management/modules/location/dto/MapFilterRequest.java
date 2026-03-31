@@ -1,6 +1,7 @@
 package com.smartcity.urban_management.modules.location.dto;
 
 import com.smartcity.urban_management.modules.report.entity.ReportStatus;
+import com.smartcity.urban_management.modules.task.entity.TaskStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,4 +20,5 @@ public class MapFilterRequest {
     private List<UUID> departmentIds;
 
     private String keyword;
+    private List<TaskStatus> taskStatuses;
 }

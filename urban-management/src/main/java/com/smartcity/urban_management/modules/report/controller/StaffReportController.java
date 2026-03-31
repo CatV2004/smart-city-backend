@@ -19,10 +19,4 @@ import java.util.UUID;
 public class StaffReportController {
 
     private final ReportService reportService;
-
-    @Operation(summary = "Get report details by ID")
-    @GetMapping("/{reportId}")
-    public ReportStaffDetailResponse getById(@PathVariable UUID reportId) {
-        return reportService.getStaffDetail(reportId);
-    }
 }
