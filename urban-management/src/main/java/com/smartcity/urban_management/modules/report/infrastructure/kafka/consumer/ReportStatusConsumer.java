@@ -10,6 +10,7 @@ import com.smartcity.urban_management.shared.messaging.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,30 +26,47 @@ public class ReportStatusConsumer {
             topics = KafkaTopics.REPORT_STATUS_CHANGED,
             groupId = "report-status-assignment-group"
     )
-    public void listenStatusChanged(ReportStatusChangedMessage message) {
+    public void listenStatusChanged(
+            ReportStatusChangedMessage message,
+            Acknowledgment ack
+    ) {
 
         log.info("[KafkaConsumer] Received ReportStatusChangedMessage | reportId={} | newStatus={}",
                 message.getReportId(), message.getNewStatus());
 
-        if (message.getNewStatus() != ReportStatus.VERIFIED
-                && message.getNewStatus() != ReportStatus.VERIFIED_AUTO) {
-            log.debug("[KafkaConsumer] Status not eligible for auto-assign, skipping");
-            return;
+        try {
+
+            if (message.getNewStatus() != ReportStatus.VERIFIED
+                    && message.getNewStatus() != ReportStatus.VERIFIED_AUTO) {
+
+                log.debug("[KafkaConsumer] Status not eligible for auto-assign, skipping");
+
+                ack.acknowledge();
+                return;
+            }
+
+            boolean existed = taskRepository.existsByReportId(message.getReportId());
+
+            if (existed) {
+                log.warn("[KafkaConsumer] Task already exists for reportId={}, skipping auto-assign",
+                        message.getReportId());
+
+                ack.acknowledge();
+                return;
+            }
+
+            Report report = reportRepository.findById(message.getReportId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Report not found with id " + message.getReportId()
+                    ));
+
+            taskService.autoAssign(report);
+
+            ack.acknowledge();
+
+        } catch (Exception e) {
+            log.error("❌ Failed to process auto assign", e);
+            throw e; // Kafka retry
         }
-
-        boolean existed = taskRepository.existsByReportId(message.getReportId());
-
-        if (existed) {
-            log.warn("[KafkaConsumer] Task already exists for reportId={}, skipping auto-assign",
-                    message.getReportId());
-            return;
-        }
-
-        Report report = reportRepository.findById(message.getReportId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "Report not found with id " + message.getReportId()
-                ));
-
-        taskService.autoAssign(report);
     }
 }

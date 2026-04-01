@@ -9,14 +9,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findById(UUID id);
 
-    Optional<User> findByPhoneNumber(String phoneNumber);
+    Optional<User> findByEmail(String email);
 
     @Query("""
                 SELECT u FROM User u
@@ -93,6 +94,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             Pageable pageable
     );
 
+    List<User> findByOfficeId(UUID officeId);
+
     @Query("""
                 SELECT new com.smartcity.urban_management.modules.user.dto.UserSummaryResponse(
                     u.id,
@@ -132,4 +135,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     UUID findDepartmentOfficeIdByUserId(@Param("userId") UUID userId);
 
     boolean existsByIdAndOfficeId(UUID userId, UUID officeId);
+
+    @Query("SELECT u.id FROM User u WHERE u.role.name = 'ADMIN'")
+    List<UUID> findAllAdminIds();
 }

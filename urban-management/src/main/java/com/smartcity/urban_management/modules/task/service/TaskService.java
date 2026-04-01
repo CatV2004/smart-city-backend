@@ -25,4 +25,5 @@ public interface TaskService {
 
     Report completeTask(UUID taskId, CompleteTaskRequest request, CustomUserDetails user);
 
+
 }

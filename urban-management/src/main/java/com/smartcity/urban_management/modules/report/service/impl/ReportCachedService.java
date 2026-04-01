@@ -216,12 +216,20 @@ public class ReportCachedService implements ReportService {
             String changedBy,
             String note
     ) {
+        ReportStatus oldStatus = report.getStatus();
+        UUID userId = report.getCreatedBy().getId();
+
+        if (userId == null) {
+            throw new IllegalStateException("userId is null when publishing ReportStatusChangedEvent");
+        }
         // ===== DELEGATE BUSINESS LOGIC =====
         delegate.updateStatus(report, newStatus, changedBy, note);
         applicationEventPublisher.publishEvent(
                 new ReportStatusChangedEvent(
                         report.getId(),
-                        report.getStatus(),
+                        userId,
+                        report.getTitle(),
+                        oldStatus,
                         newStatus,
                         changedBy
                 )
@@ -235,7 +243,6 @@ public class ReportCachedService implements ReportService {
         mapCacheService.evictAllMapData();
 
         if (report.getCreatedBy() != null) {
-            UUID userId = report.getCreatedBy().getId();
             reportCacheService.evictUserReportPages(userId);
             reportCacheService.evictRecentReports(userId);
         }

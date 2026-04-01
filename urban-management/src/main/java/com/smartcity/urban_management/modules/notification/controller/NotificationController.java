@@ -19,9 +19,10 @@ public class NotificationController {
     @GetMapping
     public PageResponse<NotificationResponse> getMyNotifications(
             PageRequestDto request,
+            @RequestParam(value = "isRead", required = false) Boolean isRead,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return notificationService.getMyNotifications(request, user.getId());
+        return notificationService.getMyNotifications(request, user.getId(), isRead);
     }
 
     @PatchMapping("/{id}/read")

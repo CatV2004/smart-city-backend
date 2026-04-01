@@ -11,6 +11,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReportStatusChangedEvent {
     UUID reportId;
+    UUID userId;
+    String title;
     ReportStatus oldStatus;
     ReportStatus newStatus;
     String changedBy;

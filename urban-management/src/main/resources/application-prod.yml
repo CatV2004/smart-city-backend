@@ -26,15 +26,6 @@ spring:
     baseline-on-migrate: true
     clean-disabled: true
 
-  mail:
-    host: smtp.sendgrid.net
-    port: 587
-    username: apikey
-    password: ${SENDGRID_API_KEY}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-
   devtools:
     restart:
       enabled=true:

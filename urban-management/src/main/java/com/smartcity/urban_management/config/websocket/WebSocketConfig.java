@@ -16,7 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtChannelInterceptor jwtChannelInterceptor;
-    private final HttpHandshakeInterceptor handshakeInterceptor;
+//    private final HttpHandshakeInterceptor handshakeInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -34,9 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .addInterceptors(handshakeInterceptor)
-                .setAllowedOriginPatterns("*")
-                .withSockJS(); // production vẫn dùng OK
+                .setAllowedOriginPatterns("*");
     }
 
     @Override

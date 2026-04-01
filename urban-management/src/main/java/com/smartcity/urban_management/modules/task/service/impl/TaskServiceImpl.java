@@ -1,7 +1,11 @@
 package com.smartcity.urban_management.modules.task.service.impl;
+
 import com.smartcity.urban_management.modules.department.entity.DepartmentOffice;
 import com.smartcity.urban_management.modules.department.repository.DepartmentOfficeRepository;
 import com.smartcity.urban_management.modules.location.client.RoutingClient;
+import com.smartcity.urban_management.modules.notification.entity.Notification;
+import com.smartcity.urban_management.modules.notification.entity.NotificationType;
+import com.smartcity.urban_management.modules.notification.service.NotificationService;
 import com.smartcity.urban_management.modules.report.dto.detail.ReportStaffDetailResponse;
 import com.smartcity.urban_management.modules.report.dto.summary.AttachmentSummaryResponse;
 import com.smartcity.urban_management.modules.report.entity.Report;
@@ -28,12 +32,16 @@ import com.smartcity.urban_management.modules.user.repository.UserRepository;
 import com.smartcity.urban_management.security.user.CustomUserDetails;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
+import com.smartcity.urban_management.shared.messaging.event.TaskAssignedEvent;
+import com.smartcity.urban_management.shared.messaging.event.TaskCompletedEvent;
+import com.smartcity.urban_management.shared.messaging.event.TaskStartedEvent;
 import com.smartcity.urban_management.shared.pagination.PageMapper;
 import com.smartcity.urban_management.shared.pagination.PageRequestDto;
 import com.smartcity.urban_management.shared.pagination.PageResponse;
 import com.smartcity.urban_management.shared.pagination.PageableFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -60,8 +68,9 @@ public class TaskServiceImpl implements TaskService {
     private final TaskEvidenceService taskEvidenceService;
     private final TaskValidator taskValidator;
     private final TaskEvidenceRepository evidenceRepository;
-
+    private final NotificationService notificationService;
     private static final int CANDIDATE_LIMIT = 5;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UUID autoAssign(Report report) {
@@ -115,6 +124,20 @@ public class TaskServiceImpl implements TaskService {
 
         Task saved = taskRepository.save(task);
         log.info("Assigned report {} → office {}", report.getId(), bestOffice.getId());
+        eventPublisher.publishEvent(
+                new TaskAssignedEvent(
+                        saved.getId(),
+                        report.getId(),
+                        bestOffice.getId(),
+                        bestOffice.getName()
+                )
+        );
+
+//        notificationService.notifyAdminsTaskAssigned(
+//                report.getId(),
+//                bestOffice.getId(),
+//                bestOffice.getName()
+//        );
         return saved.getId();
     }
 
@@ -195,6 +218,15 @@ public class TaskServiceImpl implements TaskService {
                 "Task started"
         );
 
+        eventPublisher.publishEvent(
+                new TaskStartedEvent(
+                        task.getId(),
+                        report.getId(),
+                        currentUser.getId(),
+                        currentUser.getFullName()
+                )
+        );
+
         return report;
     }
 
@@ -225,6 +257,16 @@ public class TaskServiceImpl implements TaskService {
                 ReportStatus.RESOLVED,
                 "SYSTEM",
                 note
+        );
+
+        eventPublisher.publishEvent(
+                new TaskCompletedEvent(
+                        task.getId(),
+                        report.getId(),
+                        user.getId(),
+                        task.getAssignedUser().getFullName(),
+                        note
+                )
         );
 
         return report;

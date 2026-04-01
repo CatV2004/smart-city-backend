@@ -26,8 +26,8 @@ public class KafkaConsumerConfig {
                 new JsonDeserializer<>(Object.class, objectMapper);
 
         deserializer.addTrustedPackages(
-                "com.smartcity.urban_management.modules.report.messaging"
-//                "com.smartcity.urban_management.modules.notification.messaging",
+                "com.smartcity.urban_management.modules.report.messaging",
+                "com.smartcity.urban_management.modules.task.messaging"
 //                "com.smartcity.urban_management.modules.user.messaging"
         );
 

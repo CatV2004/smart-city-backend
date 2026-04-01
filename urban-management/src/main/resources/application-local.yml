@@ -21,13 +21,6 @@ spring:
   flyway:
     enabled: true
 
-  mail:
-    host: localhost
-    port: 1025
-    properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
-
 cloudinary:
   cloud-name: dohsfqs6d
   api-key: 123894699435121

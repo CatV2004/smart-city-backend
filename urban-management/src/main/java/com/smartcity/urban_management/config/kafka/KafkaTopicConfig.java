@@ -48,4 +48,36 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic reportInProgress() {
+        return TopicBuilder.name(KafkaTopics.REPORT_IN_PROGRESS)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic taskAssigned() {
+        return TopicBuilder.name(KafkaTopics.TASK_ASSIGNED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic taskStarted() {
+        return TopicBuilder.name(KafkaTopics.TASK_STARTED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic taskCompleted() {
+        return TopicBuilder.name(KafkaTopics.TASK_COMPLETED)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

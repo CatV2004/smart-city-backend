@@ -25,6 +25,8 @@ public class ReportStatusEventHandler {
 
         ReportStatusChangedMessage message = ReportStatusChangedMessage.builder()
                 .reportId(event.getReportId())
+                .userId(event.getUserId())
+                .title(event.getTitle())
                 .oldStatus(event.getOldStatus())
                 .newStatus(event.getNewStatus())
                 .changedAt(LocalDateTime.now())

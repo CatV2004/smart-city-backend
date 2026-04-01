@@ -54,6 +54,8 @@ public class SecurityConfig {
 
                         // ---------- PUBLIC ----------
                         .requestMatchers(
+                                // websocket
+                                "/ws/**",
                                 // auth
                                 "/api/v1/auth/**",
 

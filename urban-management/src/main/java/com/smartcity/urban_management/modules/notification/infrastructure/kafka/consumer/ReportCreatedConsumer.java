@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationConsumer {
+public class ReportCreatedConsumer {
 
     private final NotificationService notificationService;
 

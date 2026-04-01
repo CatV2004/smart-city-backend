@@ -12,6 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReportStatusChangedMessage {
     UUID reportId;
+    private UUID userId;
+    private String title;
     ReportStatus oldStatus;
     ReportStatus newStatus;
     LocalDateTime changedAt;
