@@ -3756,5 +3756,3 @@ This project is protected under the **MIT License**. For more details, refer to 
  </div>
 
 [back-to-top]: https://img.shields.io/badge/-BACK_TO_TOP-151515?style=flat-square
-
----
