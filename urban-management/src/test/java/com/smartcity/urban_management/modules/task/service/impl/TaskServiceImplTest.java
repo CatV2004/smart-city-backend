@@ -10,6 +10,7 @@ import com.smartcity.urban_management.modules.task.entity.TaskStatus;
 import com.smartcity.urban_management.modules.task.repository.TaskRepository;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
+import com.smartcity.urban_management.shared.messaging.event.TaskAssignedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.locationtech.jts.geom.Coordinate;
@@ -19,6 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -44,6 +47,9 @@ class TaskServiceImplTest {
     @InjectMocks
     private TaskServiceImpl taskService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @Test
     void autoAssign_shouldAssignToBestOffice_basedOnRoutingDurations() {
         // GIVEN
@@ -57,11 +63,9 @@ class TaskServiceImplTest {
 
         UUID departmentId = UUID.randomUUID();
 
-        // Mock reportRepository
         when(reportRepository.findDepartmentIdByReportId(reportId))
                 .thenReturn(departmentId);
 
-        // Mock officeRepository
         DepartmentOffice office1 = DepartmentOffice.builder().id(UUID.randomUUID()).build();
         DepartmentOffice office2 = DepartmentOffice.builder().id(UUID.randomUUID()).build();
 
@@ -70,7 +74,7 @@ class TaskServiceImplTest {
         when(officeRepository.findNearestOffices(eq(departmentId), anyDouble(), anyDouble(), anyInt()))
                 .thenReturn(candidates);
 
-        // Mock routingClient (durations: office1 = 10, office2 = 5)
+        // durations: [ignored, office1=10, office2=5]
         when(routingClient.getDurations(eq(location), eq(candidates)))
                 .thenReturn(List.of(0.0, 10.0, 5.0));
 
@@ -78,26 +82,41 @@ class TaskServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // WHEN
-        taskService.autoAssign(report);
+        UUID taskId = taskService.autoAssign(report);
 
-        // THEN
-        // Verify taskRepository.save called with bestOffice = office2 (shortest duration)
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskRepository).save(captor.capture());
+        // THEN - verify save
+        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepository).save(taskCaptor.capture());
 
-        Task savedTask = captor.getValue();
+        Task savedTask = taskCaptor.getValue();
         assertEquals(report, savedTask.getReport());
         assertEquals(TaskStatus.ASSIGNED, savedTask.getStatus());
         assertEquals(office2.getId(), savedTask.getDepartmentOffice().getId());
         assertNotNull(savedTask.getAssignedAt());
+
+        // THEN - verify event
+        ArgumentCaptor<TaskAssignedEvent> eventCaptor =
+                ArgumentCaptor.forClass(TaskAssignedEvent.class);
+
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TaskAssignedEvent event = eventCaptor.getValue();
+        assertEquals(taskId, event.getTaskId());
+        assertEquals(reportId, event.getReportId());
+        assertEquals(office2.getId(), event.getOfficeId());
     }
 
     @Test
     void autoAssign_shouldFallbackToNearest_whenRoutingFails() {
+        // GIVEN
         UUID reportId = UUID.randomUUID();
         Point location = new GeometryFactory().createPoint(new Coordinate(10.0, 20.0));
 
-        Report report = Report.builder().id(reportId).location(location).build();
+        Report report = Report.builder()
+                .id(reportId)
+                .location(location)
+                .build();
+
         UUID departmentId = UUID.randomUUID();
 
         DepartmentOffice office1 = DepartmentOffice.builder().id(UUID.randomUUID()).build();
@@ -105,20 +124,38 @@ class TaskServiceImplTest {
 
         List<DepartmentOffice> candidates = List.of(office1, office2);
 
-        when(reportRepository.findDepartmentIdByReportId(reportId)).thenReturn(departmentId);
-        when(officeRepository.findNearestOffices(departmentId, 20.0, 10.0, 5)).thenReturn(candidates);
-        when(routingClient.getDurations(location, candidates)).thenThrow(new RuntimeException("Mapbox down"));
+        when(reportRepository.findDepartmentIdByReportId(reportId))
+                .thenReturn(departmentId);
+
+        when(officeRepository.findNearestOffices(departmentId, 20.0, 10.0, 5))
+                .thenReturn(candidates);
+
+        when(routingClient.getDurations(location, candidates))
+                .thenThrow(new RuntimeException("Mapbox down"));
 
         when(taskRepository.save(any(Task.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        taskService.autoAssign(report);
+        // WHEN
+        UUID taskId = taskService.autoAssign(report);
 
-        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
-        verify(taskRepository).save(captor.capture());
+        // THEN - verify fallback chọn office1
+        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepository).save(taskCaptor.capture());
 
-        Task savedTask = captor.getValue();
-        assertEquals(office1.getId(), savedTask.getDepartmentOffice().getId()); // fallback to nearest
+        Task savedTask = taskCaptor.getValue();
+        assertEquals(office1.getId(), savedTask.getDepartmentOffice().getId());
+
+        // THEN - verify event vẫn được publish
+        ArgumentCaptor<TaskAssignedEvent> eventCaptor =
+                ArgumentCaptor.forClass(TaskAssignedEvent.class);
+
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        TaskAssignedEvent event = eventCaptor.getValue();
+        assertEquals(taskId, event.getTaskId());
+        assertEquals(reportId, event.getReportId());
+        assertEquals(office1.getId(), event.getOfficeId());
     }
 
     @Test

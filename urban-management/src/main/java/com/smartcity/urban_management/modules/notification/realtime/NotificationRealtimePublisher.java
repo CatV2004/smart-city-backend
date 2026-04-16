@@ -13,6 +13,7 @@ public class NotificationRealtimePublisher {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void pushToUser(UUID userId, Object payload) {
+        System.out.println("Pushing notification to user " + userId + ": " + payload);
 
         messagingTemplate.convertAndSendToUser(
                 userId.toString(),
