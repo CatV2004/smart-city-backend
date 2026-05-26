@@ -70,6 +70,15 @@ public class TaskController {
         return report.getId();
     }
 
+    @PatchMapping("/{taskId}/cancel")
+    public UUID cancelTask(
+            @PathVariable UUID taskId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        Report report = taskService.cancelTask(taskId, user);
+        return report.getId();
+    }
+
     @PostMapping(value = "/{taskId}/complete", consumes = "multipart/form-data")
     public UUID completeTask(
             @PathVariable UUID taskId,

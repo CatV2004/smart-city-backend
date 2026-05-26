@@ -1,6 +1,7 @@
 package com.smartcity.urban_management.modules.task.infrastructure.kafka.producer;
 
 import com.smartcity.urban_management.modules.task.messaging.TaskAssignedMessage;
+import com.smartcity.urban_management.modules.task.messaging.TaskCancelledMessage;
 import com.smartcity.urban_management.modules.task.messaging.TaskCompletedMessage;
 import com.smartcity.urban_management.modules.task.messaging.TaskStartedMessage;
 import com.smartcity.urban_management.shared.messaging.KafkaTopics;
@@ -24,5 +25,9 @@ public class TaskEventProducer {
 
     public void publishTaskCompleted(TaskCompletedMessage message) {
         kafkaTemplate.send(KafkaTopics.TASK_COMPLETED, message);
+    }
+
+    public void publishTaskCancelled(TaskCancelledMessage message) {
+        kafkaTemplate.send(KafkaTopics.TASK_CANCELLED, message);
     }
 }

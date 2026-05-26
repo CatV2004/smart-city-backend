@@ -10,6 +10,7 @@ public final class KafkaTopics {
     public static final String REPORT_IN_PROGRESS = "report.in-progress";
     public static final String TASK_ASSIGNED = "task.assigned";
     public static final String TASK_STARTED = "task.started";
+    public static final String TASK_CANCELLED = "task.cancelled";
     public static final String TASK_COMPLETED = "task.completed";
 
     private KafkaTopics() {}

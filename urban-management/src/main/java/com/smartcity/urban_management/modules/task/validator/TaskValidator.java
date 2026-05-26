@@ -65,4 +65,21 @@ public class TaskValidator {
             throw new AppException(ErrorCode.TASK_NOT_CLAIMED_BY_USER);
         }
     }
+
+    public void validateCancelTask(Task task, UUID userId) {
+
+        if (task.getStatus() == TaskStatus.COMPLETED) {
+            throw new AppException(ErrorCode.TASK_ALREADY_COMPLETED);
+        }
+
+        if (task.getStatus() == TaskStatus.CANCELLED) {
+            throw new AppException(ErrorCode.TASK_ALREADY_CANCELLED);
+        }
+
+        if (task.getAssignedUser() == null ||
+                !task.getAssignedUser().getId().equals(userId)) {
+
+            throw new AppException(ErrorCode.TASK_NOT_ASSIGNED_TO_USER);
+        }
+    }
 }

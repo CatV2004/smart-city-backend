@@ -2,10 +2,12 @@ package com.smartcity.urban_management.modules.task.infrastructure.kafka.produce
 
 import com.smartcity.urban_management.modules.task.entity.Task;
 import com.smartcity.urban_management.modules.task.messaging.TaskAssignedMessage;
+import com.smartcity.urban_management.modules.task.messaging.TaskCancelledMessage;
 import com.smartcity.urban_management.modules.task.messaging.TaskCompletedMessage;
 import com.smartcity.urban_management.modules.task.messaging.TaskStartedMessage;
 import com.smartcity.urban_management.modules.task.repository.TaskRepository;
 import com.smartcity.urban_management.shared.messaging.event.TaskAssignedEvent;
+import com.smartcity.urban_management.shared.messaging.event.TaskCancelledEvent;
 import com.smartcity.urban_management.shared.messaging.event.TaskCompletedEvent;
 import com.smartcity.urban_management.shared.messaging.event.TaskStartedEvent;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +64,20 @@ public class TaskKafkaEventHandler {
                 .build();
 
         producer.publishTaskStarted(message);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleTaskCancelled(TaskCancelledEvent event) {
+
+        log.info("Handling TaskCancelledEvent: {}", event.getTaskId());
+
+        TaskCancelledMessage message = TaskCancelledMessage.builder()
+                .taskId(event.getTaskId())
+                .reportId(event.getReportId())
+                .userId(event.getUserId())
+                .build();
+
+        producer.publishTaskCancelled(message);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

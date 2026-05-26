@@ -33,6 +33,7 @@ import com.smartcity.urban_management.security.user.CustomUserDetails;
 import com.smartcity.urban_management.shared.exception.AppException;
 import com.smartcity.urban_management.shared.exception.ErrorCode;
 import com.smartcity.urban_management.shared.messaging.event.TaskAssignedEvent;
+import com.smartcity.urban_management.shared.messaging.event.TaskCancelledEvent;
 import com.smartcity.urban_management.shared.messaging.event.TaskCompletedEvent;
 import com.smartcity.urban_management.shared.messaging.event.TaskStartedEvent;
 import com.smartcity.urban_management.shared.pagination.PageMapper;
@@ -223,6 +224,43 @@ public class TaskServiceImpl implements TaskService {
                         task.getId(),
                         report.getId(),
                         currentUser.getId(),
+                        currentUser.getFullName()
+                )
+        );
+
+        return report;
+    }
+
+    @Override
+    @Transactional
+    public Report cancelTask(UUID taskId, CustomUserDetails user) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new AppException(ErrorCode.TASK_NOT_FOUND));
+
+        taskValidator.validateCancelTask(task, user.getId());
+
+        User currentUser = userRepository.getReferenceById(user.getId());
+
+        task.setStatus(TaskStatus.CANCELLED);
+        task.setUpdatedAt(LocalDateTime.now());
+
+        taskRepository.save(task);
+
+        Report report = task.getReport();
+
+        reportService.updateStatus(
+                report,
+                ReportStatus.CLOSED,
+                "SYSTEM",
+                "Task cancelled"
+        );
+
+        eventPublisher.publishEvent(
+                new TaskCancelledEvent(
+                        task.getId(),
+                        report.getId(),
+                        user.getId(),
                         currentUser.getFullName()
                 )
         );

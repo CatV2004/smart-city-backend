@@ -78,6 +78,7 @@ public enum ErrorCode {
     TASK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "TASK_400_5", "Task already completed"),
     TASK_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "TASK_400_6", "Task already cancelled"),
     INVALID_TASK_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "TASK_400_7", "Invalid task status transition"),
+    TASK_NOT_ASSIGNED_TO_USER(HttpStatus.FORBIDDEN, "TASK_403_3", "Task is not assigned to current user"),
 
     // ===== TASK PERMISSION =====
     TASK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "TASK_403_1", "You cannot access this task"),

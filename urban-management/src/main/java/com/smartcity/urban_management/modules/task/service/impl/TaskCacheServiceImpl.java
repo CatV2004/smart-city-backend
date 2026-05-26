@@ -119,6 +119,22 @@ public class TaskCacheServiceImpl implements TaskService {
     }
 
     @Override
+    public Report cancelTask(UUID taskId, CustomUserDetails user) {
+
+        Report report = delegate.cancelTask(taskId, user);
+
+        taskCacheService.evictTaskDetail(taskId);
+        taskCacheService.evictAllPages();
+
+        reportCacheService.evictReport(report.getId());
+        reportCacheService.evictAllReportPages();
+
+        log.info("Cancel task {} → evicted task + report cache", taskId);
+
+        return report;
+    }
+
+    @Override
     public Report completeTask(UUID taskId, CompleteTaskRequest request, CustomUserDetails user) {
 
         Report report = delegate.completeTask(taskId, request, user);

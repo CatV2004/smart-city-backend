@@ -23,6 +23,8 @@ public interface TaskService {
 
     Report startTask(UUID taskId, CustomUserDetails user);
 
+    Report cancelTask(UUID taskId, CustomUserDetails user);
+
     Report completeTask(UUID taskId, CompleteTaskRequest request, CustomUserDetails user);
 
 

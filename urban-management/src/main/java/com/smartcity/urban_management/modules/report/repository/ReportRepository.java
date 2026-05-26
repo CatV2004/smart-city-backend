@@ -314,4 +314,15 @@ public interface ReportRepository extends
                 WHERE r.id = :reportId
             """)
     UUID findDepartmentIdByReportId(@Param("reportId") UUID reportId);
+
+    @Query("""
+                SELECT r FROM Report r
+                LEFT JOIN FETCH r.userCategory
+                LEFT JOIN FETCH r.aiCategory
+                LEFT JOIN FETCH r.finalCategory
+                LEFT JOIN FETCH r.createdBy
+                LEFT JOIN FETCH r.approvedBy
+                WHERE r.id = :id
+            """)
+    Optional<Report> findByIdWithRelations(UUID id);
 }
